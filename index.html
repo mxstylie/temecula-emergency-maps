@@ -143,24 +143,50 @@ body.sheet #zm,body.popopen #credbtn{display:none!important}
 
 body.sheet #credbtn,body.popopen #gchip{display:none!important}
 body.sheet #scale,body.popopen #scale{display:none!important}
+
+/* ---- easier to read and tap (seniors, new users) ---- */
+:root{--tb:78px;--ink2:#4b5551}
+#tabbar button{font-size:14px!important;font-weight:700!important;color:#3d4542!important;gap:4px}
+#tabbar button svg{width:28px;height:28px}
+#pop,#lay.open{font-size:19px!important}
+#pop h3,#pop .pk{font-size:26px}
+#pop .lead{font-size:17px}#pop .lead.big{font-size:19px;color:var(--ink)}
+.row{font-size:19px;padding:16px 2px;min-height:58px}
+.row .sub,.svl .sub{font-size:16px}
+.pri{font-size:19px;min-height:56px}
+#lay label{padding:14px 2px!important;font-size:19px!important;min-height:56px}
+#lay input[type=checkbox]{width:54px!important;height:32px!important;border-radius:16px}
+#lay input[type=checkbox]::after{width:26px;height:26px}
+#lay input[type=checkbox]:checked::after{left:25px}
+#lay .dh{font-size:16px!important}
+details.more summary{list-style:none;cursor:pointer;padding:16px 2px;font-size:19px;font-weight:600;color:var(--acc);border-bottom:1px solid var(--line)}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary::after{content:" ▾";font-size:16px}
+details.more[open] summary::after{content:" ▴"}
+#gchip{font-size:17px;padding:10px 16px 10px 12px}
+#thmbtn,#zm button{width:50px!important;height:50px!important}
+.step{display:flex;gap:14px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line);font-size:18px;line-height:1.35}
+.step .si{flex:none;width:44px;height:44px;border-radius:50%;background:#eef1ef;display:flex;align-items:center;justify-content:center}
+.step .si svg{width:24px;height:24px}
+@media (max-height:520px){:root{--tb:58px}}
 </style></head><body>
 <canvas id="c"></canvas>
 <div id="hdr" class="box"><b id="ttl">Temecula offline map</b><ul class="how"><li><span class="k">Drag</span> the map to move around</li><li><span class="k">Scroll</span> or <span class="k">+ / −</span> buttons (bottom right) to zoom in and out</li><li><span class="k">Tap a place</span> (🏥🚒🚓🏫…) to see what it is and how far away</li><li><span class="k">◎ Where am I</span> shows you on the map (GPS works with no cell service)</li><li><span class="k">⌂</span> button jumps back to Temecula</li></ul><span class="src">Works with no internet. Map data: OpenStreetMap.</span></div>
 <div id="lay" class="box">
 <div id="layl"></div><label><input type="checkbox" id="lbl" checked>Show names (zoom in)</label>
-<label><input type="checkbox" id="rng" checked>Mile Rings</label>
-<div class="dh">Map details</div>
-<label><input type="checkbox" class="dt" data-d="minor" checked><span class="sw" style="border-color:#fff;outline:1px solid #999"></span>Streets</label>
+<div class="dh">Show on the map</div>
 <label><input type="checkbox" class="dt" data-d="names" checked>Street Names</label>
 <label><input type="checkbox" class="dt" data-d="ems" checked>Hospitals, Vets, Fire, Police</label>
-<label><input type="checkbox" class="dt" data-d="school" checked>Schools</label>
 <label><input type="checkbox" class="dt" data-d="svc" checked>Stores, Gas, Pharmacies</label>
+<label><input type="checkbox" class="dt" data-d="park" checked>Parks &amp; Camps</label>
+<details class="more"><summary>More map items</summary><label><input type="checkbox" class="dt" data-d="minor" checked><span class="sw" style="border-color:#fff;outline:1px solid #999"></span>Streets</label>
+<label><input type="checkbox" class="dt" data-d="school" checked>Schools</label>
 <label><input type="checkbox" class="dt" data-d="more" checked>Water, Hardware, Post Offices</label>
 <label><input type="checkbox" class="dt" data-d="aero" checked>Airports &amp; Helipads</label>
-<label><input type="checkbox" class="dt" data-d="park" checked>Parks &amp; Camps</label>
 <label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
 <label><input type="checkbox" class="dt" data-d="dirt,trail,river" checked>Dirt Roads, Trails &amp; Creeks</label>
-<label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 46 · Nov 24</div>
+<label><input type="checkbox" id="rng" checked>Mile Rings</label>
+</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 47 · Nov 24</div>
 </div>
 <button id="grpbtn" aria-label="Groups">Groups</button><button id="thmbtn" aria-label="Light or dark map"></button><button id="credbtn" aria-label="Map credits">i</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">Update available. Tap to update</button><button id="share" aria-label="Share my location">Share location</button><button id="me" aria-label="Show where I am">My location</button><button id="laybtn" aria-label="Show layers">Layers</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
@@ -383,6 +409,17 @@ document.getElementById('addpin').onclick=()=>{const s=prompt('Paste a shared lo
   if(!m){alert('No coordinates found in that text.');return;}let nm=m[3]?decodeURIComponent(m[3]):'';if(!nm){const mm=s.match(/^\s*(.+?) is here:/);nm=mm?mm[1]:(prompt('Name for this spot:','')||'Shared spot');}
   if(ly.classList.contains('open'))lb.onclick();addPin(+m[1],+m[2],nm,m[4]?+m[4]*1000:Date.now(),true);};
 setInterval(()=>{if(PINS.length)draw();},60000);
+function showIntro(){const pop=document.getElementById('pop');sel=null;if(ly.classList.contains('open'))lb.onclick();
+  pop.innerHTML='<h3>Welcome</h3><p class="lead big">This map works without internet or cell service.</p>'+
+   '<div class="step"><span class="si" style="color:var(--blue)">'+ICON.me+'</span><div><b>Locate</b><br>Shows where you are on the map.</div></div>'+
+   '<div class="step"><span class="si" style="color:var(--acc)">'+ICON.share+'</span><div><b>Share</b><br>Sends your location to family by text, or shows numbers you can read out loud.</div></div>'+
+   '<div class="step"><span class="si">'+ICON.grp+'</span><div><b>Groups</b><br>Make a private group so only your family can open your location.</div></div>'+
+   '<div class="step"><span class="si">'+ICON.lay+'</span><div><b>Layers</b><br>Choose what shows on the map, like hospitals or stores.</div></div>'+
+   '<p class="lead">Tap any icon on the map to see what it is and how far away it is.</p><button id="introok" class="pri">Got it</button>';
+  pop.style.display='block';pop.scrollTop=0;document.getElementById('introok').onclick=()=>{try{localStorage.setItem('seenIntro','1')}catch(e){}pop.style.display='none';draw();};}
+document.getElementById('helpbtn').onclick=showIntro;
+try{if(!localStorage.getItem('seenIntro'))setTimeout(showIntro,600);}catch(e){}
+
 {const tb=document.createElement('nav');tb.id='tabbar';document.body.appendChild(tb);
  const put=(id,ic,lab)=>{const b=document.getElementById(id);b.innerHTML='<span class="bdg">'+ic+'</span><span>'+lab+'</span>';tb.appendChild(b);};
  put('laybtn',ICON.lay,'Layers');put('grpbtn',ICON.grp,'Groups');put('share',ICON.share,'Share');put('me',ICON.me,'Locate');
@@ -484,7 +521,7 @@ function readJoin(){const m=location.hash.match(/join=([^.]+)\.([0-9A-Za-z]{28})
   if(confirm('Join the private group "'+n+'"?')){if(famJoin(n,m[2]))groupPanel(FAM);}return true;}
 window.addEventListener('hashchange',readJoin);setTimeout(readJoin,300);
 
-const APPV=46;
+const APPV=47;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
