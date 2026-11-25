@@ -66,7 +66,7 @@ html,body{margin:0;height:100%;overflow:hidden;font:14px/1.4 system-ui,-apple-sy
 <label><input type="checkbox" class="dt" data-d="park" checked>Parks &amp; Camps</label>
 <label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
 <label><input type="checkbox" class="dt" data-d="dirt,trail,river" checked>Dirt Roads, Trails &amp; Creeks</label>
-<button id="fambtn" class="sb2">Family Group: <span id="famn"></span></button><button id="addpin" class="sb2">Add a Location Someone Sent You</button><button id="setname" class="sb2">My Name: <span id="myn"></span></button><div class="ver">App Version 28 · Nov 24</div>
+<button id="fambtn" class="sb2">Family Group: <span id="famn"></span></button><button id="addpin" class="sb2">Add a Location Someone Sent You</button><button id="setname" class="sb2">My Name: <span id="myn"></span></button><div class="ver">App Version 29 · Nov 24</div>
 </div>
 <button id="grpbtn" aria-label="Family group">🔒 Group</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">⬆️ Update needed — tap here</button><button id="share" aria-label="Share my location">📤 Share my location</button><button id="me" aria-label="Show where I am">◎ Where am I</button><button id="laybtn" aria-label="Show layers">☰ Layers</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
@@ -1547,17 +1547,27 @@ async function scanJoin(){const pop=document.getElementById('pop');
   const loop=async()=>{if(!camStream)return;try{const r=await bd.detect(v);for(const x of r){const m=(x.rawValue||'').match(/^TEMFAM1\|([^|]*)\|([0-9A-Z]+)$/);if(m){stopCam();if(famJoin(m[1],m[2])){famPanel();}return;}}}catch(e){}requestAnimationFrame(loop);};loop();}
 function famPanel(){const pop=document.getElementById('pop');sel=null;
   if(FAM){const qr='TEMFAM1|'+FAM.name+'|'+FAM.code;
-    pop.innerHTML='<button class="x" aria-label="Close">×</button><div class="pk">🔒 '+esc(FAM.name)+'</div><div style="color:#555;font-size:14px">Your shared locations are scrambled so only this group can open them. To add someone, let them scan this code <b>in person</b>, or read them the code below.</div><div id="famqr" style="text-align:center;margin:8px 0"></div><div class="bigc" style="font-size:20px;text-align:center">'+prettyCode(FAM.code)+'</div><button id="famleave" class="sb2">Leave this group</button>';
+    pop.innerHTML='<button class="x" aria-label="Close">×</button><div class="pk">🔒 '+esc(FAM.name)+'</div><div style="color:#555;font-size:14px">Your shared locations are scrambled so only this group can open them. To add someone, let them scan this code <b>in person</b>, or read them the code below.</div><div id="famqr" style="text-align:center;margin:8px 0"></div><div class="bigc" style="font-size:20px;text-align:center">'+prettyCode(FAM.code)+'</div><button id="faminv" class="sb2" style="background:#5f3dc4;color:#fff;border:0">📨 Send invite by text</button><button id="famleave" class="sb2">Leave this group</button>';
     pop.querySelector('#famqr').appendChild(qrCanvas(qr,300));
+    pop.querySelector('#faminv').onclick=async()=>{const link=APPURL+'#join='+encodeURIComponent(FAM.name)+'.'+FAM.code;
+      const txt='Join my private family group "'+FAM.name+'" on the Temecula offline map: '+link+' (iPhone: open the map app, tap Group, then "Join: paste or type an invite", and paste this whole message.)';
+      if(navigator.share){try{await navigator.share({text:txt});return;}catch(e){if(e&&e.name==='AbortError')return;}}location.href='sms:?&body='+encodeURIComponent(txt);};
     pop.querySelector('#famleave').onclick=()=>{if(confirm('Leave the "'+FAM.name+'" group? You will not be able to open its private locations.')){FAM=null;saveFam();famPanel();}};}
-  else{pop.innerHTML='<button class="x" aria-label="Close">×</button><div class="pk">🔒 Family Group</div><div style="color:#555;font-size:14px">A private group scrambles the locations you share, so only your family can open them.</div><button id="famnew" class="sb2" style="background:#e8590c;color:#fff;border:0">Start a new family group</button><button id="famscan" class="sb2">Join: scan a family QR code</button><button id="famtype" class="sb2">Join: type a family code</button>';
+  else{pop.innerHTML='<button class="x" aria-label="Close">×</button><div class="pk">🔒 Family Group</div><div style="color:#555;font-size:14px">A private group scrambles the locations you share, so only your family can open them.</div><button id="famnew" class="sb2" style="background:#e8590c;color:#fff;border:0">Start a new family group</button><button id="famscan" class="sb2">Join: scan a family QR code</button><button id="famtype" class="sb2">Join: paste or type an invite</button>';
     pop.querySelector('#famnew').onclick=()=>{const n=(prompt('Name for your group (for example: Smith Family):','')||'').trim();if(!n)return;const k=crypto.getRandomValues(new Uint8Array(16));FAM={name:n.slice(0,30),code:b32enc(k)+ck(k)};saveFam();famPanel();};
     pop.querySelector('#famscan').onclick=scanJoin;
-    pop.querySelector('#famtype').onclick=()=>{const c=prompt('Type the family code (letters and numbers, dashes are OK):','');if(!c)return;const n=(prompt('Group name:','Family')||'Family').trim();if(famJoin(n,c))famPanel();};}
+    pop.querySelector('#famtype').onclick=()=>{const c=prompt('Paste the invite message, or type the family code:','');if(!c)return;
+      const m=c.match(/join=([^.\s]+)\.([0-9A-Za-z]{28})/);if(m){if(famJoin(decodeURIComponent(m[1]),m[2]))famPanel();return;}
+      const g=c.match(/"([^"]{1,30})"/);const n=g?g[1]:((prompt('Group name:','Family')||'Family').trim());if(famJoin(n,c.replace(/^.*?([0-9A-Za-z]{4}(?:[\s-]?[0-9A-Za-z]{4}){6}).*$/s,'$1')))famPanel();};}
   pop.style.display='block';pop.querySelector('.x').onclick=()=>{stopCam();pop.style.display='none';};if(ly.classList.contains('open'))lb.onclick();}
 document.getElementById('fambtn').onclick=famPanel;document.getElementById('grpbtn').onclick=famPanel;famLabel();
 
-const APPV=28;
+function readJoin(){const m=location.hash.match(/join=([^.]+)\.([0-9A-Za-z]{28})/);if(!m)return false;history.replaceState(null,'',location.pathname);const n=decodeURIComponent(m[1]);
+  if(FAM&&FAM.code===normCode(m[2])){famPanel();return true;}
+  if(confirm('Join the private family group "'+n+'"?'+(FAM?'\n(This replaces your current group "'+FAM.name+'".)':''))){if(famJoin(n,m[2]))famPanel();}return true;}
+window.addEventListener('hashchange',readJoin);setTimeout(readJoin,300);
+
+const APPV=29;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
