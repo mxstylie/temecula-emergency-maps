@@ -49,7 +49,7 @@ html,body{margin:0;height:100%;overflow:hidden;font:14px/1.4 system-ui,-apple-sy
  #me{bottom:190px;right:6px;font-size:16px;padding:10px 14px}#cbtn{font-size:15px;bottom:14px;padding:10px 16px}#scale{display:none}
  #zm{bottom:14px;right:6px}
 }
-#hdr{top:10px!important}#lay label:has(#lbl){display:none}#gps{top:10px!important}#layl:empty{display:none}#lay .dh:first-of-type{border-top:0;margin-top:0;padding-top:0}</style></head><body>
+#hdr{top:10px!important}#lay label:has(#lbl){display:none}#gps{top:10px!important}#layl:empty{display:none}#lay .dh:first-of-type{border-top:0;margin-top:0;padding-top:0}#share{position:absolute;z-index:3;right:10px;bottom:250px;border:0;border-radius:30px;background:#e8590c;color:#fff;font-size:17px;font-weight:800;padding:11px 16px;box-shadow:0 3px 12px #0005;cursor:pointer}.bigc{font:800 34px/1.25 ui-monospace,Consolas,monospace;letter-spacing:.02em;margin:8px 0;color:#111}.sb2{display:block;width:100%;margin-top:10px;padding:10px;border:1px solid #ccc;border-radius:8px;background:#fff;font-size:15px;font-weight:700;cursor:pointer}@media (max-width:760px){#share{bottom:310px;right:6px;font-size:15px;padding:10px 14px}}</style></head><body>
 <canvas id="c"></canvas>
 <div id="hdr" class="box"><b id="ttl">Temecula offline map</b><ul class="how"><li><span class="k">Drag</span> the map to move around</li><li><span class="k">Scroll</span> or <span class="k">+ / −</span> buttons (bottom right) to zoom in and out</li><li><span class="k">Tap a place</span> (🏥🚒🚓🏫…) to see what it is and how far away</li><li><span class="k">◎ Where am I</span> shows you on the map (GPS works with no cell service)</li><li><span class="k">⌂</span> button jumps back to Temecula</li></ul><span class="src">Works with no internet. Map data: OpenStreetMap.</span></div>
 <div id="lay" class="box">
@@ -64,9 +64,9 @@ html,body{margin:0;height:100%;overflow:hidden;font:14px/1.4 system-ui,-apple-sy
 <label><input type="checkbox" class="dt" data-d="ems" checked><span class="em">🏥🚒🚓</span>Hospitals, fire, police</label>
 <label><input type="checkbox" class="dt" data-d="svc" checked><span class="em">🏫🛒⛽</span>Schools, stores, gas, camps</label>
 <label><input type="checkbox" class="dt" data-d="peak" checked><span class="em" style="color:#6b4f2a">▲</span>Mountain peaks</label>
-<div class="ver">App version 8 · Nov 23</div>
+<button id="addpin" class="sb2">📍 Add a location someone sent you</button><div class="ver">App version 9 · Nov 24</div>
 </div>
-<button id="me" aria-label="Show where I am">◎ Where am I</button><button id="laybtn" aria-label="Show layers">☰ Layers</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
+<button id="share" aria-label="Share my location">📤 Share my location</button><button id="me" aria-label="Show where I am">◎ Where am I</button><button id="laybtn" aria-label="Show layers">☰ Layers</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
 <div id="attr">Map data © OpenStreetMap contributors (ODbL), OpenFreeMap · terrain: Copernicus DEM via Open-Meteo · everything stored in this file</div>
 <script>
@@ -160,6 +160,7 @@ function render(){
     if(ME.hd!=null&&!isNaN(ME.hd)){const h=(ME.hd-90)*Math.PI/180;cx.beginPath();cx.moveTo(mx,my);cx.arc(mx,my,34,h-0.45,h+0.45);cx.closePath();cx.fillStyle='rgba(26,115,232,.28)';cx.fill();}
     cx.beginPath();cx.arc(mx,my,10,0,7);cx.fillStyle='#1a73e8';cx.fill();cx.lineWidth=3.5;cx.strokeStyle='#fff';cx.stroke();
     if(sel){const [sx,sy]=px(sel.lat,sel.lon);cx.setLineDash([3,6]);cx.lineWidth=3;cx.strokeStyle='#1a73e8';cx.beginPath();cx.moveTo(mx,my);cx.lineTo(sx,sy);cx.stroke();cx.setLineDash([]);}}
+  drawPins(px);
   const [ccx,ccy]=px(C[0],C[1]);cx.font='22px system-ui';cx.textAlign='center';cx.textBaseline='middle';cx.lineWidth=3;cx.strokeStyle='#fff';cx.strokeText('★',ccx,ccy);cx.fillStyle='#111';cx.fillText('★',ccx,ccy);cx.textAlign='left';
   // scale
   const la=center()[0];const mpp=156543.034*Math.cos(la*Math.PI/180)/2**z;let mi=[0.5,1,2,5,10,20,50].find(m=>m*1609.34/mpp>120)||100;
@@ -222,9 +223,50 @@ function pick2(p){const h=(window._hits||[]).find(q=>q[2]===p);if(h)pick(h[0],h[
 document.getElementById('me').onclick=startGPS;
 const lb=document.getElementById('laybtn'),ly=document.getElementById('lay');lb.onclick=()=>{ly.classList.toggle('open');lb.textContent=ly.classList.contains('open')?'✕ Close layers':'☰ Layers';lb.style.bottom=ly.classList.contains('open')?(ly.offsetHeight+258)+'px':'';};
 cv.addEventListener('pointerdown',()=>{follow=false;if(ly.classList.contains('open')){ly.classList.remove('open');lb.textContent='☰ Layers';lb.style.bottom='';}const ch=document.getElementById('cheat');if(ch)ch.style.display='none';if(gs.className==='ok'){gpsHid=true;gs.style.display='none';}});
+
+const APPURL='https://mxstylie.github.io/temecula-emergency-maps/';
+let PINS=[];try{PINS=JSON.parse(localStorage.getItem('pins')||'[]')}catch(e){}
+const savePins=()=>{try{localStorage.setItem('pins',JSON.stringify(PINS))}catch(e){}};
+const ago=t=>{const m=Math.round((Date.now()-t)/60000);return m<1?'just now':m<60?m+' min ago':m<1440?Math.round(m/60)+' hr ago':Math.round(m/1440)+' days ago';};
+function addPin(la,lo,name,t,go){if(!isFinite(la)||!isFinite(lo)||Math.abs(la)>90||Math.abs(lo)>180)return null;name=(name||'Shared spot').slice(0,40);t=t||Date.now();
+  PINS=PINS.filter(q=>q.name!==name);const q={pin:1,lat:la,lon:lo,name,t};PINS.push(q);savePins();
+  if(go){if(z<14)z=14;setCenter(la,lo);follow=false;sel=q;draw();showPin(q);}else draw();return q;}
+function readHash(){const m=location.hash.match(/p=(-?[\d.]+),(-?[\d.]+)(?:,([^,]*))?(?:,(\d+))?/);if(!m)return;
+  addPin(+m[1],+m[2],m[3]?decodeURIComponent(m[3]):'',m[4]?+m[4]*1000:Date.now(),true);history.replaceState(null,'',location.pathname);}
+window.addEventListener('hashchange',readHash);
+function showPin(q){sel=q;const pop=document.getElementById('pop');let mine='';
+  if(ME){const d=distMi(ME.la,ME.lo,q.lat,q.lon),b=brg(ME.la,ME.lo,q.lat,q.lon);mine='<div class="fromme">From you: <b>'+d.toFixed(1)+' mi</b> · heading <b>'+Math.round(b)+'° '+cmp(b)+'</b></div>';}
+  pop.innerHTML='<button class="x" aria-label="Close">×</button><div class="pk">🧍 '+esc(q.name)+'</div><div style="color:#555;font-size:15px">Shared location · '+ago(q.t)+' ('+new Date(q.t).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})+')</div>'+mine+
+   '<table><tr><td>Coordinates</td><td>'+q.lat.toFixed(5)+', '+q.lon.toFixed(5)+'</td></tr></table><button id="delpin" class="sb2">🗑 Remove this pin</button>';
+  pop.style.display='block';pop.querySelector('.x').onclick=()=>{sel=null;pop.style.display='none';draw();};
+  document.getElementById('delpin').onclick=()=>{PINS=PINS.filter(x=>x!==q);savePins();sel=null;pop.style.display='none';draw();};draw();}
+function drawPins(px){window._px=px;for(const q of PINS){const [x,y]=px(q.lat,q.lon);if(x<-40||y<-40||x>W+40||y>H+40)continue;
+  cx.beginPath();cx.arc(x,y-16,13,Math.PI*0.8,Math.PI*0.2,false);cx.lineTo(x,y);cx.closePath();cx.fillStyle=q===sel?'#ff9f1c':'#e8590c';cx.fill();cx.lineWidth=2.5;cx.strokeStyle='#fff';cx.stroke();
+  cx.beginPath();cx.arc(x,y-16,5,0,7);cx.fillStyle='#fff';cx.fill();
+  const lab=q.name+' · '+ago(q.t);cx.font='700 13px system-ui';cx.textBaseline='middle';cx.lineWidth=4;cx.strokeStyle='rgba(255,255,255,.95)';cx.strokeText(lab,x+15,y-16);cx.fillStyle='#b23b00';cx.fillText(lab,x+15,y-16);}}
+const _pick0=pick;pick=function(x,y){let b=null,bd=26;if(window._px)for(const q of PINS){const [px1,py1]=window._px(q.lat,q.lon);const d=Math.hypot(px1-x,py1-16-y);if(d<bd){bd=d;b=q;}}if(b){showPin(b);return;}_pick0(x,y);};
+function myName(){let n='';try{n=localStorage.getItem('myname')||''}catch(e){}
+  if(!n){n=(prompt('Your name (so your family knows who sent it):','')||'').trim();if(n)try{localStorage.setItem('myname',n)}catch(e){}}return n||'Me';}
+function waitFix(ms){return new Promise(res=>{if(ME)return res(ME);startGPS();const t0=Date.now();const iv=setInterval(()=>{if(ME||Date.now()-t0>ms){clearInterval(iv);res(ME);}},500);});}
+async function shareMe(){const n=myName();gpsMsg('📡 Getting your GPS location to share…','wait');const m=await waitFix(90000);
+  if(!m){gpsMsg('Could not get a GPS fix yet — go outside and try again','bad');return;}
+  const ft=Math.round(m.acc*3.28084),la=m.la.toFixed(5),lo=m.lo.toFixed(5),tm=new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+  const link=APPURL+'#p='+la+','+lo+','+encodeURIComponent(n)+','+Math.round(Date.now()/1000);
+  const txt=n+' is here: '+la+', '+lo+' (±'+ft+' ft) at '+tm+'. Tap to see it on the Temecula offline map: '+link;
+  const pop=document.getElementById('pop');sel=null;
+  pop.innerHTML='<button class="x" aria-label="Close">×</button><div class="pk">📤 Your location</div><div class="bigc">'+la+'<br>'+lo+'</div><div style="color:#555;font-size:14px">±'+ft+' ft · '+tm+' · No signal? Read these numbers over a walkie-talkie.</div><button id="sendtxt" class="sb2" style="background:#e8590c;color:#fff;border:0">💬 Send as a text message</button>';
+  pop.style.display='block';pop.querySelector('.x').onclick=()=>{pop.style.display='none';};
+  document.getElementById('sendtxt').onclick=async()=>{if(navigator.share){try{await navigator.share({text:txt});return;}catch(e){if(e&&e.name==='AbortError')return;}}location.href='sms:?&body='+encodeURIComponent(txt);};draw();}
+document.getElementById('share').onclick=shareMe;
+document.getElementById('addpin').onclick=()=>{const s=prompt('Paste a shared location (or type coordinates like 33.49361, -117.14806):','');if(!s)return;
+  const m=s.match(/p=(-?[\d.]+),(-?[\d.]+)(?:,([^,\s]*))?(?:,(\d+))?/)||s.match(/(-?\d{1,2}\.\d+)\s*,?\s+(-?\d{1,3}\.\d+)/);
+  if(!m){alert('No coordinates found in that text.');return;}let nm=m[3]?decodeURIComponent(m[3]):'';if(!nm){const mm=s.match(/^\s*(.+?) is here:/);nm=mm?mm[1]:(prompt('Name for this spot:','')||'Shared spot');}
+  if(ly.classList.contains('open'))lb.onclick();addPin(+m[1],+m[2],nm,m[4]?+m[4]*1000:Date.now(),true);};
+setInterval(()=>{if(PINS.length)draw();},60000);
+{const shb=document.getElementById('share');const _lbo=lb.onclick;lb.onclick=()=>{_lbo();shb.style.display=ly.classList.contains('open')?'none':'';};cv.addEventListener('pointerdown',()=>{shb.style.display='';});}
 window.addEventListener('resize',resize);
 const cb=document.getElementById('cbtn');if(cb){const ch=document.getElementById('cheat');cb.onclick=()=>{ch.style.display='block';};document.getElementById('cx').onclick=()=>{ch.style.display='none';};}
-let st='map';useDS(st);z=DS[st].z;setCenter(...DS[st].c);resize();
+let st='map';useDS(st);z=DS[st].z;setCenter(...DS[st].c);resize();readHash();
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});let rl=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(rl)return;rl=true;location.reload();});}
 }
 </script></body></html>
