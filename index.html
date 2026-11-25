@@ -174,6 +174,10 @@ details.more[open] summary::after{content:" ▴"}
 
 .newdot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--red);margin-right:8px;vertical-align:middle}
 #share.hasnew .bdg::after{content:'';position:absolute;right:-5px;top:-3px;width:10px;height:10px;border-radius:50%;border:2px solid #fff;background:var(--red)}
+
+/* phones: menus never cover more than ~60% of the screen, so there's always map to tap */
+@media (max-width:760px) and (min-height:521px){#pop,#lay.open{max-height:calc(62vh - var(--tb))!important;overflow-y:auto!important;overscroll-behavior:contain}}
+#layx{position:sticky;float:right;top:0;margin:-8px -6px 0 0;width:38px;height:38px;border-radius:50%;border:0;background:#eef0ef;color:var(--ink);font-size:22px;line-height:38px;cursor:pointer;z-index:2}
 </style></head><body>
 <canvas id="c"></canvas>
 <div id="hdr" class="box"><b id="ttl">Offline Emergency SoCal</b><ul class="how"><li><span class="k">Drag</span> the map to move around</li><li><span class="k">Scroll</span> or <span class="k">+ / −</span> buttons (bottom right) to zoom in and out</li><li><span class="k">Tap a place</span> (🏥🚒🚓🏫…) to see what it is and how far away</li><li><span class="k">◎ Where am I</span> shows you on the map (GPS works with no cell service)</li><li><span class="k">⌂</span> button jumps back to Temecula</li></ul><span class="src">Works with no internet. Map data: OpenStreetMap.</span></div>
@@ -191,7 +195,7 @@ details.more[open] summary::after{content:" ▴"}
 <label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
 <label><input type="checkbox" class="dt" data-d="dirt,trail,river" checked>Dirt Roads, Trails &amp; Creeks</label>
 <label><input type="checkbox" id="rng" checked>Mile Rings</label>
-</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 52 · Nov 25</div>
+</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 53 · Nov 25</div>
 </div>
 <button id="grpbtn" aria-label="Groups">Groups</button><button id="thmbtn" aria-label="Light or dark map"></button><button id="credbtn" aria-label="Map credits">i</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">Update available. Tap to update</button><button id="share" aria-label="Share my location">Share location</button><button id="me" aria-label="Show where I am">My location</button><button id="laybtn" aria-label="Show layers">Layers</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
@@ -417,7 +421,7 @@ setInterval(()=>{if(PINS.length)draw();},60000);
 function showIntro(){const pop=document.getElementById('pop');sel=null;if(ly.classList.contains('open'))lb.onclick();
   pop.innerHTML='<h3>Welcome to Offline Emergency SoCal</h3><p class="lead big">This map works without internet or cell service.</p>'+
    '<div class="step"><span class="si" style="color:var(--blue)">'+ICON.me+'</span><div><b>Locate</b><br>Shows where you are on the map.</div></div>'+
-   '<div class="step"><span class="si" style="color:var(--acc)">'+ICON.share+'</span><div><b>Share</b><br>Sends your location to family by text, or shows numbers you can read out loud.</div></div>'+
+   '<div class="step"><span class="si" style="color:var(--acc)">'+ICON.share+'</span><div><b>Share</b><br>Sends your location by sound, phone to phone or over a walkie-talkie. No cell service needed.</div></div>'+
    '<div class="step"><span class="si">'+ICON.grp+'</span><div><b>Groups</b><br>Make a private group so only your family can open your location.</div></div>'+
    '<div class="step"><span class="si">'+ICON.lay+'</span><div><b>Layers</b><br>Choose what shows on the map, like hospitals or stores.</div></div>'+
    '<p class="lead">Tap any icon on the map to see what it is and how far away it is.</p><button id="introok" class="pri">Got it</button>';
@@ -517,7 +521,7 @@ async function openSecret(tok,go){if(!GROUPS.length){alert('This is a private gr
 function famJoin(name,code){const c=normCode(code);if(!codeOk(c)){alert('That code is not right — check each letter and try again.');return false;}
   let g=GROUPS.find(x=>x.code===c);if(!g){g={id:c.slice(0,10),name:(name||'Group').slice(0,30),code:c,owner:false,color:GCOL[GROUPS.length%GCOL.length]};GROUPS.push(g);chime('join');}
   FAM=g;saveGroups();return true;}
-function openPop(html){const pop=document.getElementById('pop');sel=null;pop.innerHTML='<button class="x" aria-label="Close">×</button>'+html;pop.style.display='block';pop.scrollTop=0;
+function openPop(html){const pop=document.getElementById('pop');sel=null;pop.dataset.tab='';pop.innerHTML='<button class="x" aria-label="Close">×</button>'+html;pop.style.display='block';pop.scrollTop=0;
   pop.querySelector('.x').onclick=()=>{pop.style.display='none';draw();};if(ly.classList.contains('open'))lb.onclick();return pop;}
 const dot=c=>'<span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:'+c+';vertical-align:-1px;margin-right:6px"></span>';
 const membersOf=g=>PINS.filter(p=>p.g===g.id).sort((a,b)=>b.t-a.t);
@@ -669,7 +673,18 @@ async function sndListen(){stopListen();const pop=openPop('<h3>Listening…</h3>
 document.getElementById('share').onclick=shareSheet;
 window._snd={sndPack,sndRender,sndOpen,wavOf,inviteBytes,closeBytes,G:()=>GROUPS};saveInbox();
 
-const APPV=52;
+// ---------- menus: tap the same tab again to close; swipe down to close; X on Layers ----------
+{const pop=document.getElementById('pop');
+ const shut=()=>{pop.style.display='none';stopListen();pop.dataset.tab='';draw();};
+ const wrap=(id,fn,name)=>{const b=document.getElementById(id);if(!b)return;b.onclick=()=>{if(pop.style.display==='block'&&pop.dataset.tab===name){shut();return;}fn();pop.dataset.tab=name;};};
+ wrap('share',shareSheet,'share');wrap('grpbtn',famPanel,'groups');
+ const lx=document.createElement('button');lx.id='layx';lx.setAttribute('aria-label','Close');lx.textContent='×';lx.onclick=()=>{if(ly.classList.contains('open'))lb.onclick();};ly.insertBefore(lx,ly.firstChild);
+ const swipe=(el,close)=>{let y0=null,x0=0;el.addEventListener('touchstart',e=>{if(el.scrollTop>0){y0=null;return;}y0=e.touches[0].clientY;x0=e.touches[0].clientX;},{passive:true});
+   el.addEventListener('touchmove',e=>{if(y0===null)return;const dy=e.touches[0].clientY-y0;if(dy>0&&el.scrollTop<=0)el.style.transform='translateY('+dy+'px)';},{passive:true});
+   el.addEventListener('touchend',e=>{if(y0===null)return;const dy=e.changedTouches[0].clientY-y0;el.style.transform='';y0=null;if(dy>70)close();});};
+ swipe(pop,shut);swipe(ly,()=>{if(ly.classList.contains('open'))lb.onclick();});}
+
+const APPV=53;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
