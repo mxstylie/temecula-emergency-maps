@@ -213,7 +213,7 @@ body.noui #zpm,body.sheet #zpm,body.popopen #zpm{display:none!important}
 <label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
 <label><input type="checkbox" class="dt" data-d="dirt,trail,river" checked>Dirt Roads, Trails &amp; Creeks</label>
 <label><input type="checkbox" id="rng" checked>Mile Rings</label>
-</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 56 · Nov 25</div>
+</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 57 · Nov 25</div>
 </div>
 <button id="grpbtn" aria-label="Groups">Groups</button><button id="thmbtn" aria-label="Light or dark map"></button><button id="credbtn" aria-label="Map credits">i</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">Update available. Tap to update</button><button id="share" aria-label="Share my location">Share location</button><button id="me" aria-label="Show where I am">My location</button><button id="laybtn" aria-label="Show layers">Layers</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
@@ -458,7 +458,7 @@ new MutationObserver(()=>{const pp=document.getElementById('pop');document.body.
 cv.addEventListener('pointerdown',()=>{const pp=document.getElementById('pop');window._hadPanel=ly.classList.contains('open')||getComputedStyle(pp).display!=='none';},true);
 document.addEventListener('pointerdown',e=>{if(document.body.classList.contains('noui')){document.body.classList.remove('noui');const t=document.getElementById('uitip');if(t)t.style.display='none';window._justShown=true;}},true);
 document.addEventListener('pointerup',()=>{if(window._justShown)setTimeout(()=>{window._justShown=false;},0);},true);
-{const _p1=pick;pick=function(x,y){if(window._justShown){window._justShown=false;return;}const pp=document.getElementById('pop');_p1(x,y);if(getComputedStyle(pp).display!=='none'){document.body.classList.remove('noui');document.getElementById('uitip').style.display='none';}else if(!window._hadPanel){const h=document.body.classList.toggle('noui');const tip=document.getElementById('uitip');if(h){tip.style.display='block';clearTimeout(window._tipT);window._tipT=setTimeout(()=>tip.style.display='none',2500);}else tip.style.display='none';}};}
+{const _p1=pick;pick=function(x,y){if(window._justShown){window._justShown=false;return;}const pp=document.getElementById('pop');_p1(x,y);if(getComputedStyle(pp).display!=='none'){document.body.classList.remove('noui');document.getElementById('uitip').style.display='none';}else if(false){const h=document.body.classList.toggle('noui');const tip=document.getElementById('uitip');if(h){tip.style.display='block';clearTimeout(window._tipT);window._tipT=setTimeout(()=>tip.style.display='none',2500);}else tip.style.display='none';}};}
 // ---------- data over sound (16-tone FSK in the 1–2.8 kHz voice band; works speaker->mic and over walkie-talkies) ----------
 const SND={F0:1000,DF:120,NT:16,SYM:0.060,GAP:0.012,SA:700,SB:3000,LEAD:0.45,PRE:6,PREDUR:0.10};
 function crc16(b){let c=0xFFFF;for(const x of b){c^=x<<8;for(let i=0;i<8;i++)c=c&0x8000?((c<<1)^0x1021)&0xFFFF:(c<<1)&0xFFFF;}return c;}
@@ -716,7 +716,10 @@ window.addEventListener('error',e=>{try{let b=document.getElementById('errbar');
 // ---------- + / − zoom buttons, bottom right ----------
 {const box=document.createElement('div');box.id='zpm';['zi','zo'].forEach(id=>{const b=document.getElementById(id);if(b)box.appendChild(b);});document.body.appendChild(box);}
 
-const APPV=56;
+// buttons always stay on screen
+document.body.classList.remove('noui');new MutationObserver(()=>{if(document.body.classList.contains('noui'))document.body.classList.remove('noui');}).observe(document.body,{attributes:true,attributeFilter:['class']});
+
+const APPV=57;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
