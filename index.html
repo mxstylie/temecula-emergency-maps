@@ -191,7 +191,7 @@ details.more[open] summary::after{content:" ▴"}
 <label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
 <label><input type="checkbox" class="dt" data-d="dirt,trail,river" checked>Dirt Roads, Trails &amp; Creeks</label>
 <label><input type="checkbox" id="rng" checked>Mile Rings</label>
-</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 50 · Nov 25</div>
+</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 51 · Nov 25</div>
 </div>
 <button id="grpbtn" aria-label="Groups">Groups</button><button id="thmbtn" aria-label="Light or dark map"></button><button id="credbtn" aria-label="Map credits">i</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">Update available. Tap to update</button><button id="share" aria-label="Share my location">Share location</button><button id="me" aria-label="Show where I am">My location</button><button id="laybtn" aria-label="Show layers">Layers</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
@@ -311,7 +311,7 @@ let drag=null,moved=false;const pts=new Map();
 cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);pts.set(e.pointerId,[e.offsetX,e.offsetY]);drag={x:e.offsetX,y:e.offsetY,cx:cxp,cy:cyp};if(pts.size===1)moved=false;cv.classList.add('drag');});
 cv.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId)){let hov=false;for(const [hx,hy] of window._hits||[]){if(Math.abs(hx-e.offsetX)<12&&Math.abs(hy-e.offsetY)<12){hov=true;break;}}cv.style.cursor=hov?'pointer':'';return;}const prev=pts.get(e.pointerId);pts.set(e.pointerId,[e.offsetX,e.offsetY]);
   if(pts.size===2){const [a,b]=[...pts.values()];const d=Math.hypot(a[0]-b[0],a[1]-b[1]);const pa=[...pts.entries()].map(([k,v])=>k===e.pointerId?prev:v);const d0=Math.hypot(pa[0][0]-pa[1][0],pa[0][1]-pa[1][1]);if(d0>0)zoomAt(z+Math.log2(d/d0),(a[0]+b[0])/2,(a[1]+b[1])/2);moved=true;return;}
-  if(!drag||pts.size>1)return;const dx=e.offsetX-drag.x,dy=e.offsetY-drag.y;if(Math.abs(dx)+Math.abs(dy)>3)moved=true;cxp=drag.cx-dx;cyp=drag.cy-dy;draw();});
+  if(!drag||pts.size>1)return;const dx=e.offsetX-drag.x,dy=e.offsetY-drag.y;if(Math.abs(dx)+Math.abs(dy)>12)moved=true;cxp=drag.cx-dx;cyp=drag.cy-dy;draw();});
 const up=e=>{pts.delete(e.pointerId);cv.classList.remove('drag');if(drag&&!moved&&pts.size===0)pick(e.offsetX,e.offsetY);if(pts.size){const q=[...pts.values()][0];drag={x:q[0],y:q[1],cx:cxp,cy:cyp};}else drag=null;};
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
 cv.addEventListener('pointerdown',()=>{const ch=document.getElementById('cheat');if(ch)ch.style.display='none';});
@@ -405,9 +405,9 @@ async function shareMe(){const n=myName();gpsMsg('📡 Getting your GPS location
   let txt=n+' is here: '+la+', '+lo+' (±'+ft+' ft) at '+tm+'. Tap to see it on the Offline Emergency SoCal map: '+link;
   if(FAM){try{const tok=await famEnc({la:+la,lo:+lo,n,t:Date.now(),a:ft});txt='🔒 Private location for the "'+FAM.name+'" group. Open it in the Offline Emergency SoCal app (iPhone: copy this message, then Layers → Add a Location Someone Sent You): '+APPURL+'#e='+tok;}catch(e){}}
   const pop=document.getElementById('pop');sel=null;
-  pop.innerHTML='<button class="x" aria-label="Close">×</button><h3>Your location</h3><div class="code big">'+la+'<br>'+lo+'</div><p class="lead">Accurate to about '+ft+' feet, at '+tm+'. No signal? Read these numbers to someone over a walkie-talkie.</p>'+(FAM?'<p class="lead">Your text goes privately to <b>'+esc(FAM.name)+'</b>.</p>':'')+'<div class="acts"><button id="sendtxt" class="pri">Send as a text message</button></div>';
+  pop.innerHTML='<button class="x" aria-label="Close">×</button><h3>Your location</h3><div class="code big">'+la+'<br>'+lo+'</div><p class="lead">Accurate to about '+ft+' feet, at '+tm+'. No signal? Read these numbers to someone over a walkie-talkie.</p>';
   pop.style.display='block';pop.querySelector('.x').onclick=()=>{pop.style.display='none';};
-  document.getElementById('sendtxt').onclick=async()=>{if(navigator.share){try{await navigator.share({text:txt});return;}catch(e){if(e&&e.name==='AbortError')return;}}location.href='sms:?&body='+encodeURIComponent(txt);};draw();}
+  draw();}
 document.getElementById('share').onclick=shareMe;
 document.getElementById('addpin').onclick=()=>{const s=prompt('Paste a shared location (or type coordinates like 33.49361, -117.14806):','');if(!s)return;const me2=s.match(/e=([A-Za-z0-9_-]+)/);if(me2){if(ly.classList.contains('open'))lb.onclick();openSecret(me2[1]);return;}
   const m=s.match(/p=(-?[\d.]+),(-?[\d.]+)(?:,([^,\s]*))?(?:,(\d+))?/)||s.match(/(-?\d{1,2}\.\d+)\s*,?\s+(-?\d{1,3}\.\d+)/);
@@ -434,7 +434,7 @@ try{if(!localStorage.getItem('seenIntro'))setTimeout(showIntro,600);}catch(e){}
 {const at=document.getElementById('attr');document.getElementById('credbtn').onclick=()=>{at.classList.toggle('show');clearTimeout(window._atT);if(at.classList.contains('show'))window._atT=setTimeout(()=>at.classList.remove('show'),6000);};}
 new MutationObserver(()=>{const pp=document.getElementById('pop');document.body.classList.toggle('popopen',pp.style.display==='block');if(ly.classList.contains('open')||pp.style.display==='block')gs.style.display='none';}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['style','class']});
 cv.addEventListener('pointerdown',()=>{const pp=document.getElementById('pop');window._hadPanel=ly.classList.contains('open')||getComputedStyle(pp).display!=='none';},true);
-{const _p1=pick;pick=function(x,y){const pp=document.getElementById('pop');_p1(x,y);if(!window._hadPanel&&getComputedStyle(pp).display==='none'){const h=document.body.classList.toggle('noui');const tip=document.getElementById('uitip');if(h){tip.style.display='block';clearTimeout(window._tipT);window._tipT=setTimeout(()=>tip.style.display='none',2500);}else tip.style.display='none';}};}
+{const _p1=pick;pick=function(x,y){const pp=document.getElementById('pop');_p1(x,y);if(getComputedStyle(pp).display!=='none'){document.body.classList.remove('noui');document.getElementById('uitip').style.display='none';}else if(!window._hadPanel){const h=document.body.classList.toggle('noui');const tip=document.getElementById('uitip');if(h){tip.style.display='block';clearTimeout(window._tipT);window._tipT=setTimeout(()=>tip.style.display='none',2500);}else tip.style.display='none';}};}
 // ---------- data over sound (16-tone FSK in the 1–2.8 kHz voice band; works speaker->mic and over walkie-talkies) ----------
 const SND={F0:1000,DF:120,NT:16,SYM:0.060,GAP:0.012,SA:700,SB:3000,LEAD:0.45,PRE:6,PREDUR:0.10};
 function crc16(b){let c=0xFFFF;for(const x of b){c^=x<<8;for(let i=0;i<8;i++)c=c&0x8000?((c<<1)^0x1021)&0xFFFF:(c<<1)&0xFFFF;}return c;}
@@ -517,13 +517,12 @@ async function openSecret(tok,go){if(!GROUPS.length){alert('This is a private gr
 function famJoin(name,code){const c=normCode(code);if(!codeOk(c)){alert('That code is not right — check each letter and try again.');return false;}
   let g=GROUPS.find(x=>x.code===c);if(!g){g={id:c.slice(0,10),name:(name||'Group').slice(0,30),code:c,owner:false,color:GCOL[GROUPS.length%GCOL.length]};GROUPS.push(g);chime('join');}
   FAM=g;saveGroups();return true;}
-async function sendText(txt){if(navigator.share){try{await navigator.share({text:txt});return;}catch(e){if(e&&e.name==='AbortError')return;}}location.href='sms:?&body='+encodeURIComponent(txt);}
 function openPop(html){const pop=document.getElementById('pop');sel=null;pop.innerHTML='<button class="x" aria-label="Close">×</button>'+html;pop.style.display='block';pop.scrollTop=0;
   pop.querySelector('.x').onclick=()=>{pop.style.display='none';draw();};if(ly.classList.contains('open'))lb.onclick();return pop;}
 const dot=c=>'<span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:'+c+';vertical-align:-1px;margin-right:6px"></span>';
 const membersOf=g=>PINS.filter(p=>p.g===g.id).sort((a,b)=>b.t-a.t);
 
-const inviteText=g=>sendText('Join my private group "'+g.name+'" on the Offline Emergency SoCal map: '+APPURL+'#join='+encodeURIComponent(g.name)+'.'+g.code+'\n\nOr open the Offline Emergency SoCal app, tap Groups, then Join a group, and type this code: '+prettyCode(g.code));
+const inviteText=g=>inviteSheet(g);
 // ----- list of all my groups -----
 function famPanel(){
   const rows=GROUPS.map(g=>{const n=membersOf(g).length;return '<button class="row nav grow" data-g="'+g.id+'"><span class="gdot" style="background:'+g.color+'"></span><span class="rt"><b>'+esc(g.name)+'</b><span class="sub">'+(g===FAM?'You share to this group':(g.owner?'You made this group':'Member'))+', '+n+' '+(n===1?'person':'people')+'</span></span></button>';}).join('');
@@ -548,16 +547,16 @@ function groupPanel(g){if(!g)return famPanel();
     '<button id="faminv" class="pri">Invite people</button>'+
     (g===FAM?'':'<button id="gact" class="row nav"><span class="rt"><b>Share to this group</b><span class="sub">Your shared locations will go here</span></span></button>')+
     '<div class="hd">People</div>'+mem+'<div class="hd">Other ways to invite</div>'+
-    '<div class="row stat"><span class="rt"><b>Group code</b><span class="sub">Read it out loud. They tap Groups, then Join a group, and type it.</span></span></div><div class="code">'+prettyCode(g.code)+'</div>'+
+    '<div class="row stat"><span class="rt"><b>Group code</b><span class="sub">Or read it out loud. They tap Groups, then Join a group, and type it.</span></span></div><div class="code">'+prettyCode(g.code)+'</div>'+
     (g.owner!==false?'<button id="famdis" class="row dng">Close this group for everyone</button>':'')+(g.owner!==true?'<button id="famleave" class="row dng">Leave this group</button>':''));
   pop.querySelector('#gback').onclick=famPanel;
   const ga=pop.querySelector('#gact');if(ga)ga.onclick=()=>{FAM=g;saveGroups();groupPanel(g);};
   pop.querySelectorAll('.mem').forEach(b=>b.onclick=()=>{const p=PINS[+b.dataset.i];if(!p)return;if(z<14)z=14;setCenter(p.lat,p.lon);follow=false;showPin(p);});
   pop.querySelector('#faminv').onclick=()=>inviteText(g);
   const lv=pop.querySelector('#famleave');if(lv)lv.onclick=()=>{if(confirm('Leave "'+g.name+'"?\nYou will stop seeing its private locations.')){GROUPS=GROUPS.filter(x=>x!==g);PINS=PINS.filter(p=>p.g!==g.id);savePins();saveGroups();chime('leave');famPanel();}};
-  const ds=pop.querySelector('#famdis');if(ds)ds.onclick=async()=>{if(!confirm('Close "'+g.name+'" for everyone?\nNext, send the closing message to your group so it is removed from their phones too.'))return;
-    let tok='';try{tok=await encFor(g,{close:1,t:Date.now()});}catch(e){}GROUPS=GROUPS.filter(x=>x!==g);PINS=PINS.filter(p=>p.g!==g.id);savePins();saveGroups();chime('close');famPanel();
-    sendText('The "'+g.name+'" group is closed. Tap to remove it from your Offline Emergency SoCal app: '+APPURL+'#e='+tok+' (iPhone: open the Offline Emergency SoCal app, tap Layers, then Add a location someone sent you, and paste this message.)');};}
+  const ds=pop.querySelector('#famdis');if(ds)ds.onclick=async()=>{if(!confirm('Close "'+g.name+'" for everyone?\nNext, play the closing sound to your group so it is removed from their phones too.'))return;
+    GROUPS=GROUPS.filter(x=>x!==g);PINS=PINS.filter(p=>p.g!==g.id);savePins();saveGroups();chime('close');famPanel();
+    closeSheet(g);};}
 document.getElementById('fambtn').onclick=famPanel;document.getElementById('grpbtn').onclick=famPanel;setTimeout(famLabel,0);
 
 function readJoin(){const m=location.hash.match(/join=([^.]+)\.([0-9A-Za-z]{28})/);if(!m)return false;history.replaceState(null,'',location.pathname);const n=decodeURIComponent(m[1]);
@@ -587,10 +586,30 @@ let INBOX=[];try{INBOX=JSON.parse(localStorage.getItem('inbox')||'[]')}catch(e){
 function saveInbox(){INBOX=INBOX.slice(-60);try{localStorage.setItem('inbox',JSON.stringify(INBOX))}catch(e){}
   const n=INBOX.filter(q=>!q.seen).length,sb=document.querySelector('#tabbar [data-t="share"],#share');if(sb)sb.classList.toggle('hasnew',n>0);}
 // b = decoded bytes; returns a short status line
-async function gotSound(b,via){const r=await sndOpen(b);if(!r)return null;if(r.locked)return {locked:true};
+async function gotSound(b,via){
+  if(b[0]===3){const k=b.slice(1,17),code=b32enc(k)+ck(k),name=new TextDecoder().decode(b.slice(17))||'Group';return {invite:{name,code,have:GROUPS.some(g=>g.code===code)}};}
+  if(b[0]===4){const iv=new Uint8Array(12);iv.set(b.slice(2,6));for(const g of GROUPS){if(gHint(g)!==b[1])continue;try{const pt=new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv,tagLength:32},await keyOf(g),b.slice(6)));
+      if(pt[0]===0xC1){GROUPS=GROUPS.filter(x=>x!==g);PINS=PINS.filter(p=>p.g!==g.id);savePins();saveGroups();chime('close');return {closed:g};}}catch(e){}}return {locked:true};}
+  const r=await sndOpen(b);if(!r)return null;if(r.locked)return {locked:true};
   const key=hex(b);const old=INBOX.find(q=>q.p===key);if(old)return {dup:true,q:old};
   const q={n:r.o.n||'Someone',la:r.o.la,lo:r.o.lo,t:r.o.t,h:Date.now(),g:r.g?r.g.id:null,gn:r.g?r.g.name:'',p:key,via,seen:false};
   INBOX.push(q);saveInbox();addPin(q.la,q.lo,q.n,q.t,false,q.g);chime('join');return {q};}
+function soundRow(r,i){if(r.invite)return '<button class="row nav" data-join="'+r.invite.code+'" data-jn="'+esc(r.invite.name)+'"><span class="rt"><b><i class="newdot"></i>Invite to join '+esc(r.invite.name)+'</b><span class="sub">'+(r.invite.have?'You are already in this group':'Tap to join')+'</span></span></button>';
+  if(r.closed)return '<div class="row stat"><span class="rt"><b>'+esc(r.closed.name)+' was closed</b><span class="sub">The person who made it closed it. It was removed from this phone.</span></span></div>';
+  if(r.locked)return '<div class="row stat"><span class="rt"><b>Private message from another group</b><span class="sub">You are not in that group</span></span></div>';
+  return r.q?inboxRow(r.q,INBOX.indexOf(r.q)):'';}
+function wireRows(root){root.querySelectorAll('[data-ib]').forEach(el=>el.onclick=()=>{stopListen();inboxItem(+el.dataset.ib);});
+  root.querySelectorAll('[data-join]').forEach(el=>el.onclick=()=>{const n=el.dataset.jn,c=el.dataset.join;const have=GROUPS.find(g=>g.code===c);stopListen();
+    if(have){groupPanel(have);return;}if(confirm('Join the private group "'+n+'"?')&&famJoin(n,c))groupPanel(FAM);});}
+function inviteBytes(g){const nm=new TextEncoder().encode(g.name).slice(0,24);return new Uint8Array([3,...codeOk(g.code),...nm]);}
+async function closeBytes(g){const iv=new Uint8Array(12);crypto.getRandomValues(iv.subarray(0,4));const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv,tagLength:32},await keyOf(g),new Uint8Array([0xC1,1])));return new Uint8Array([4,gHint(g),...iv.subarray(0,4),...ct]);}
+function soundButtons(pop,p,fname){pop.querySelector('#sbplay').onclick=()=>playPayload(p,1);pop.querySelector('#sbsave').onclick=()=>saveSoundFile(p,fname);}
+const SBTN='<button id="sbplay" class="pri">Play the sound</button><button id="sbsave" class="row nav"><span class="rt"><b>Save as a sound file</b><span class="sub">Saved on this phone to play later</span></span></button>';
+function inviteSheet(g){const p=inviteBytes(g);const pop=openPop('<h3>Invite people to '+esc(g.name)+'</h3><p class="lead">Turn your volume up and play the sound near their phone, or over a walkie-talkie. They tap <b>Share → Listen for a location</b>, then tap the invite.</p>'+SBTN+
+    '<div class="row stat"><span class="rt"><b>Or read this code out loud</b><span class="sub">They tap Groups, then Join a group, and type it.</span></span></div><div class="code">'+prettyCode(g.code)+'</div><p class="lead">Only invite people you trust. Anyone who hears this sound can join.</p>');
+  soundButtons(pop,p,'invite-'+g.name);playPayload(p,1);}
+async function closeSheet(g){const p=await closeBytes(g);const pop=openPop('<h3>Tell your group</h3><p class="lead">Play this sound near their phones, or over a walkie-talkie, while they listen. It removes <b>'+esc(g.name)+'</b> from their phones.</p>'+SBTN);
+  soundButtons(pop,p,'closed-'+g.name);playPayload(p,1);}
 function inboxRow(q,i){return '<button class="row nav" data-ib="'+i+'"><span class="rt"><b>'+(q.seen?'':'<i class="newdot"></i>')+esc(q.n)+' sent their location</b><span class="sub">Sent '+tmS(q.t)+(q.gn?' · '+esc(q.gn):'')+'</span></span></button>';}
 function inboxSheet(){const list=INBOX.map((q,i)=>[q,i]).reverse();
   const pop=openPop('<h3>Locations you got</h3>'+(list.length?list.map(([q,i])=>inboxRow(q,i)).join(''):'<p class="lead">Nothing yet. When you listen and get a location, it is saved here.</p>')+
@@ -610,10 +629,8 @@ function pickRecording(){const inp=document.createElement('input');inp.type='fil
     let res=[];try{const ac=sAC();const ab=await ac.decodeAudioData(await f.arrayBuffer());const x=ab.getChannelData(0);
       const found=[];const rx=new SndRx(ab.sampleRate,b=>found.push(b));for(let i=0;i<x.length;i+=4096)rx.push(x.subarray(i,Math.min(x.length,i+4096)));rx.push(new Float32Array(ab.sampleRate));
       for(const b of found)res.push(await gotSound(b,'file'));}catch(e){openPop('<h3>Could not open that file</h3><p class="lead">Try a different recording. Voice memo, .wav, .m4a or .mp3 files work.</p>');return;}
-    const got=res.filter((r,k)=>r&&r.q&&res.findIndex(x=>x&&x.q===r.q)===k),locked=res.some(r=>r&&r.locked);
-    openPop('<h3>'+(got.length?'Found '+got.length+' location'+(got.length>1?'s':''):'No location found')+'</h3>'+
-      (got.length?got.map(r=>inboxRow(r.q,INBOX.indexOf(r.q))).join(''):'<p class="lead">'+(locked?'It has a private location from a group you are not in.':'The recording may be too quiet or too noisy. Record closer to the sound.')+'</p>'));
-    document.querySelectorAll('#pop [data-ib]').forEach(el=>el.onclick=()=>inboxItem(+el.dataset.ib));};
+    const seen=new Set(),out=res.filter(r=>{if(!r||r.dup&&!r.q)return false;const k=r.q?'q'+INBOX.indexOf(r.q):r.invite?'i'+r.invite.code:r.closed?'c'+r.closed.id:'l';if(seen.has(k))return false;seen.add(k);return true;});
+    const pp=openPop('<h3>'+(out.length?'Found in the recording':'Nothing found')+'</h3>'+(out.length?out.map(r=>soundRow(r)).join(''):'<p class="lead">The recording may be too quiet or too noisy. Record closer to the sound.</p>'));wireRows(pp);};
   inp.click();}
 // ---- save my location as a sound file to play later ----
 function wavOf(pcm,sr){const n=pcm.length,u=new DataView(new ArrayBuffer(44+n*2));const w=(o,s)=>{for(let i=0;i<s.length;i++)u.setUint8(o+i,s.charCodeAt(i));};
@@ -621,8 +638,7 @@ function wavOf(pcm,sr){const n=pcm.length,u=new DataView(new ArrayBuffer(44+n*2)
   for(let i=0;i<n;i++)u.setInt16(44+i*2,Math.max(-1,Math.min(1,pcm[i]))*32767,true);return new Blob([u.buffer],{type:'audio/wav'});}
 async function saveSoundFile(p,name){const sr=44100,one=sndRender(p,sr),gap=sr;const pcm=new Float32Array(one.length*2+gap);pcm.set(one);pcm.set(one,one.length+gap);
   const fn=('location-'+(name||'me')+'-'+new Date().toTimeString().slice(0,5).replace(':','')+'.wav').replace(/[^\w.-]/g,'_');const blob=wavOf(pcm,sr);
-  try{const file=new File([blob],fn,{type:'audio/wav'});if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});return;}}catch(e){if(e&&e.name==='AbortError')return;}
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);}
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);}
 function shareSheet(){const nn=INBOX.filter(q=>!q.seen).length,last=INBOX[INBOX.length-1];
   const pop=openPop('<h3>Share</h3><p class="lead">No cell service needed for sound. Hold the phones close together, or hold your phone up to a walkie-talkie.</p>'+
    '<button id="sndsend" class="pri">Send my location by sound</button>'+
@@ -630,32 +646,30 @@ function shareSheet(){const nn=INBOX.filter(q=>!q.seen).length,last=INBOX[INBOX.
    '<button id="sndinbox" class="row nav"><span class="rt"><b>'+(nn?'<i class="newdot"></i>':'')+'Locations you got'+(INBOX.length?' ('+INBOX.length+')':'')+'</b><span class="sub">'+(last?esc(last.n)+' sent theirs at '+tmS(last.t):'Saved here so you can look later')+'</span></span></button>'+
    '<button id="sndfile" class="row nav"><span class="rt"><b>Open a recording</b><span class="sub">Find a location in a voice memo or sound file</span></span></button>'+
    '<button id="shnum" class="row nav"><span class="rt"><b>Show my location as numbers</b><span class="sub">To read out loud over a walkie-talkie</span></span></button>'+
-   '<button id="shtxt" class="row nav"><span class="rt"><b>Send by text message</b><span class="sub">Only works when you have cell service</span></span></button>'+
    (FAM?'<p class="lead">Private to <b>'+esc(FAM.name)+'</b>. Only your group can open it.</p>':''));
   pop.querySelector('#sndsend').onclick=sndSendMine;pop.querySelector('#sndlisten').onclick=sndListen;pop.querySelector('#sndinbox').onclick=inboxSheet;pop.querySelector('#sndfile').onclick=pickRecording;
-  pop.querySelector('#shnum').onclick=()=>shareMe();pop.querySelector('#shtxt').onclick=()=>shareMe();}
+  pop.querySelector('#shnum').onclick=()=>shareMe();}
 async function sndSendMine(){const n=myName();const pop=openPop('<h3>Send by sound</h3><p class="lead">Finding your location…</p>');
   const m=await waitFix(90000);if(!m){openPop('<h3>Send by sound</h3><p class="lead">No GPS signal yet. Go outside and try again.</p>');return;}
   const o={la:m.la,lo:m.lo,n,t:Date.now()};const p=await sndPack(o);
   const show=()=>{const pp=openPop('<h3>Sending…</h3><div class="code big">'+m.la.toFixed(5)+'<br>'+m.lo.toFixed(5)+'</div><p class="lead">Turn your volume up. Keep the other phone close, or hold this phone to the walkie-talkie and press talk. The other person taps <b>Share → Listen for a location</b>.</p>'+
-     (FAM?'<p class="lead">Private to <b>'+esc(FAM.name)+'</b>.</p>':'')+'<button id="sndagain" class="pri">Play again</button><button id="sndsave" class="row nav"><span class="rt"><b>Save as a sound file</b><span class="sub">Play it later, or leave it on a recorder</span></span></button>');
+     (FAM?'<p class="lead">Private to <b>'+esc(FAM.name)+'</b>.</p>':'')+'<button id="sndagain" class="pri">Play again</button><button id="sndsave" class="row nav"><span class="rt"><b>Save as a sound file</b><span class="sub">Saved on this phone to play later</span></span></button>');
     pp.querySelector('#sndagain').onclick=async()=>{await playPayload(p,1);};pp.querySelector('#sndsave').onclick=()=>saveSoundFile(p,n);};
   show();await playPayload(p,2);}
 let _mic=null;function stopListen(){if(_mic){_mic.stream.getTracks().forEach(t=>t.stop());try{_mic.proc.disconnect();_mic.src.disconnect();}catch(e){}_mic=null;}}
-async function sndListen(){stopListen();const pop=openPop('<h3>Listening…</h3><p class="lead">Hold this phone near the other phone or the walkie-talkie speaker.</p><div class="meter"><i id="lvl"></i></div><div id="heard"></div><button id="sndstop" class="row dng">Stop listening</button>');
+async function sndListen(){stopListen();const pop=openPop('<h3>Listening…</h3><p class="lead">Hold this phone near the other phone or the walkie-talkie speaker. Locations, group invites and group messages show up here.</p><div class="meter"><i id="lvl"></i></div><div id="heard"></div><button id="sndstop" class="row dng">Stop listening</button>');
   pop.querySelector('.x').addEventListener('click',stopListen);pop.querySelector('#sndstop').onclick=()=>{stopListen();pop.style.display='none';};
   let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});}catch(e){openPop('<h3>Microphone is off</h3><p class="lead">Allow the microphone for this app in your phone’s settings, then try again.</p>');return;}
   const ac=sAC();const src=ac.createMediaStreamSource(stream);const proc=ac.createScriptProcessor(4096,1,1);const lv=document.getElementById('lvl');
   const rx=new SndRx(ac.sampleRate,async b=>{const r=await gotSound(b,'mic');const h=document.getElementById('heard');if(!r||!h||r.dup)return;
-      if(r.locked){h.insertAdjacentHTML('afterbegin','<div class="row stat"><span class="rt"><b>Private location from another group</b><span class="sub">You are not in that group</span></span></div>');return;}
-      const i=INBOX.indexOf(r.q);h.insertAdjacentHTML('afterbegin',inboxRow(r.q,i));h.querySelector('[data-ib="'+i+'"]').onclick=()=>{stopListen();inboxItem(i);};},
+      if(r.invite)chime('join');h.insertAdjacentHTML('afterbegin',soundRow(r));wireRows(h);},
     v=>{if(lv)lv.style.width=Math.round(v*100)+'%';});
   proc.onaudioprocess=e=>rx.push(new Float32Array(e.inputBuffer.getChannelData(0)));
   src.connect(proc);const mute=ac.createGain();mute.gain.value=0;proc.connect(mute);mute.connect(ac.destination);_mic={stream,proc,src};}
 document.getElementById('share').onclick=shareSheet;
-window._snd={sndPack,sndRender,sndOpen,wavOf};saveInbox();
+window._snd={sndPack,sndRender,sndOpen,wavOf,inviteBytes,closeBytes,G:()=>GROUPS};saveInbox();
 
-const APPV=50;
+const APPV=51;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
