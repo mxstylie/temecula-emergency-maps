@@ -61,14 +61,14 @@ html,body{margin:0;height:100%;overflow:hidden;font:14px/1.4 system-ui,-apple-sy
 <label><input type="checkbox" class="dt" data-d="dirt" checked><span class="sw" style="border-top:4px dashed #8b5a2b"></span>Dirt Roads</label>
 <label><input type="checkbox" class="dt" data-d="trail" checked><span class="sw" style="border-top:4px dotted #d9480f"></span>Trails</label>
 <label><input type="checkbox" class="dt" data-d="river" checked><span class="sw" style="border-color:#4a90d9"></span>Creeks &amp; Rivers</label>
-<label><input type="checkbox" class="dt" data-d="ems" checked><span class="em">🏥🐾🚒🚓</span>Hospitals, Vets, Fire, Police</label>
-<label><input type="checkbox" class="dt" data-d="school" checked><span class="em">🏫</span>Schools</label>
-<label><input type="checkbox" class="dt" data-d="svc" checked><span class="em">🛒⛽💊</span>Stores, Gas, Pharmacies</label>
-<label><input type="checkbox" class="dt" data-d="more" checked><span class="em">🚰🔨📮</span>Water, Hardware, Post Offices</label>
-<label><input type="checkbox" class="dt" data-d="aero" checked><span class="em">✈️🚁</span>Airports &amp; Helipads</label>
-<label><input type="checkbox" class="dt" data-d="park" checked><span class="em">🌳⛺</span>Parks &amp; Camps</label>
-<label><input type="checkbox" class="dt" data-d="peak" checked><span class="em" style="color:#6b4f2a">▲</span>Mountain Peaks</label>
-<button id="addpin" class="sb2">📍 Add a Location Someone Sent You</button><button id="setname" class="sb2">✏️ My Name: <span id="myn"></span></button><div class="ver">App Version 20 · Nov 24</div>
+<label><input type="checkbox" class="dt" data-d="ems" checked>Hospitals, Vets, Fire, Police</label>
+<label><input type="checkbox" class="dt" data-d="school" checked>Schools</label>
+<label><input type="checkbox" class="dt" data-d="svc" checked>Stores, Gas, Pharmacies</label>
+<label><input type="checkbox" class="dt" data-d="more" checked>Water, Hardware, Post Offices</label>
+<label><input type="checkbox" class="dt" data-d="aero" checked>Airports &amp; Helipads</label>
+<label><input type="checkbox" class="dt" data-d="park" checked>Parks &amp; Camps</label>
+<label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
+<button id="addpin" class="sb2">Add a Location Someone Sent You</button><button id="setname" class="sb2">My Name: <span id="myn"></span></button><div class="ver">App Version 21 · Nov 24</div>
 </div>
 <button id="updbar">⬆️ Update needed — tap here</button><button id="share" aria-label="Share my location">📤 Share my location</button><button id="me" aria-label="Show where I am">◎ Where am I</button><button id="laybtn" aria-label="Show layers">☰ Layers</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
@@ -268,7 +268,7 @@ document.getElementById('addpin').onclick=()=>{const s=prompt('Paste a shared lo
   if(!m){alert('No coordinates found in that text.');return;}let nm=m[3]?decodeURIComponent(m[3]):'';if(!nm){const mm=s.match(/^\s*(.+?) is here:/);nm=mm?mm[1]:(prompt('Name for this spot:','')||'Shared spot');}
   if(ly.classList.contains('open'))lb.onclick();addPin(+m[1],+m[2],nm,m[4]?+m[4]*1000:Date.now(),true);};
 setInterval(()=>{if(PINS.length)draw();},60000);
-const APPV=20;
+const APPV=21;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
