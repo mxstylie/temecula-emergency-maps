@@ -54,17 +54,33 @@ html,body{margin:0;height:100%;overflow:hidden;font:14px/1.4 system-ui,-apple-sy
 :root{--ink:#1f2421;--ink2:#5d6863;--line:#e4e7e5;--sheet:#ffffff;--acc:#2f6b3f;--red:#c62828;--blue:#1a73e8}
 body,button,input{font-family:-apple-system,"SF Pro Text",Roboto,"Segoe UI",system-ui,sans-serif}
 button{-webkit-tap-highlight-color:transparent}
-/* floating controls */
-#share,#me,#laybtn,#grpbtn{display:flex!important;align-items:center;gap:8px;background:#fff!important;color:var(--ink)!important;border:0!important;border-radius:24px!important;
-  font-size:16px!important;font-weight:600!important;padding:10px 16px 10px 13px!important;box-shadow:0 1px 3px rgba(0,0,0,.28),0 0 0 1px rgba(0,0,0,.05)!important;letter-spacing:0}
-#share svg,#me svg,#laybtn svg,#grpbtn svg{flex:none}
-#me{color:var(--blue)!important}
-#grpbtn .gdot{width:12px;height:12px}
-#thmbtn{width:44px;height:44px;padding:0!important;border-radius:50%!important;display:flex;align-items:center;justify-content:center;background:#fff!important;color:var(--ink)!important;box-shadow:0 1px 3px rgba(0,0,0,.28),0 0 0 1px rgba(0,0,0,.05)!important}
-#credbtn{font:italic 700 15px Georgia,serif!important;color:var(--ink2)!important;background:#fff!important;box-shadow:0 1px 3px rgba(0,0,0,.25)!important}
-#zm{border-radius:12px!important;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.28)!important}
-#updbar{background:var(--acc)!important;font-size:15px!important;font-weight:600!important;border-radius:22px!important}
-body.sheet #share,body.sheet #me,body.sheet #laybtn,body.sheet #grpbtn,body.sheet #thmbtn,body.sheet #credbtn{display:none!important}
+/* bottom tab bar (like a normal phone app) */
+:root{--tb:66px}
+#tabbar{position:fixed;left:0;right:0;bottom:0;z-index:5;height:var(--tb);padding-bottom:env(safe-area-inset-bottom);background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr)}
+#tabbar button{position:static!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none!important;border:0!important;box-shadow:none!important;border-radius:0!important;
+  padding:6px 2px!important;margin:0!important;color:var(--ink2)!important;font-size:12px!important;font-weight:600!important;letter-spacing:0;cursor:pointer;width:auto!important;max-width:none!important;transform:none!important}
+#tabbar button svg{width:24px;height:24px}
+#tabbar button.on,#tabbar button:active{color:var(--acc)!important}
+#tabbar #share{color:var(--acc)!important}
+#tabbar #me{color:var(--blue)!important}
+#tabbar .bdg{position:relative}
+#tabbar .bdg i{position:absolute;right:-5px;top:-3px;width:10px;height:10px;border-radius:50%;border:2px solid #fff}
+#gchip{position:absolute;z-index:3;left:12px;top:12px;display:none;align-items:center;gap:8px;background:#fff;border:0;border-radius:20px;padding:8px 14px 8px 10px;font-size:15px;font-weight:600;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.25);cursor:pointer;max-width:60%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#gchip.on{display:flex}#gchip .gdot{margin-right:0;width:12px;height:12px}
+#thmbtn{position:absolute!important;top:12px!important;right:12px!important;bottom:auto!important;width:44px;height:44px;padding:0!important;border:0!important;border-radius:50%!important;display:flex;align-items:center;justify-content:center;background:#fff!important;color:var(--ink)!important;box-shadow:0 1px 3px rgba(0,0,0,.28)!important}
+#zm{top:66px!important;right:12px!important;bottom:auto!important;left:auto!important;border-radius:22px!important;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.28)!important;background:#fff!important}
+#zm button{width:44px!important;height:44px!important;font-size:22px!important;color:var(--ink)!important;background:#fff!important;border:0!important;border-bottom:1px solid var(--line)!important}
+#zm button:last-child{border-bottom:0!important}
+#credbtn{position:absolute!important;left:10px!important;right:auto!important;bottom:calc(var(--tb) + 10px)!important;width:26px;height:26px;border:0;border-radius:50%;font:italic 700 14px Georgia,serif!important;color:var(--ink2)!important;background:rgba(255,255,255,.9)!important;box-shadow:0 1px 2px rgba(0,0,0,.25)!important;padding:0}
+#attr{bottom:var(--tb)!important}
+#uitip{bottom:24px!important}
+#updbar{background:var(--acc)!important;font-size:15px!important;font-weight:600!important;border-radius:22px!important;top:12px!important}
+#gps{top:64px!important}
+body.noui #tabbar,body.noui #gchip,body.noui #thmbtn,body.noui #zm,body.noui #credbtn{display:none!important}
+#scale{bottom:calc(var(--tb) + 8px)!important}
+@media (max-width:760px){#zm #zi,#zm #zo{display:none}}
+@media (max-height:520px){:root{--tb:54px}#tabbar button{flex-direction:row!important;gap:8px;font-size:14px!important}#tabbar button svg{width:20px;height:20px}}
+@media (min-width:761px) and (min-height:521px){#tabbar{left:50%;right:auto;width:520px;margin-left:-260px;bottom:14px;border:0;border-radius:18px;box-shadow:0 2px 12px rgba(0,0,0,.22)}#credbtn{bottom:24px!important}#scale{bottom:24px!important;left:44px!important}}
 /* sheets */
 #pop,#lay.open{background:var(--sheet)!important;color:var(--ink);border-radius:18px 18px 0 0!important;box-shadow:0 -2px 18px rgba(0,0,0,.22)!important;padding:22px 20px 18px!important;font-size:17px!important}
 #pop::before,#lay.open::before{content:"";position:absolute;left:50%;top:8px;width:38px;height:5px;margin-left:-19px;border-radius:3px;background:#c9cdca}
@@ -108,18 +124,25 @@ body.sheet #share,body.sheet #me,body.sheet #laybtn,body.sheet #grpbtn,body.shee
 @media (prefers-reduced-motion:reduce){#lay input[type=checkbox],#lay input[type=checkbox]::after{transition:none}}
 /* placement: phones */
 @media (max-width:760px){
- #pop{left:0!important;right:0!important;bottom:0!important;width:auto!important;max-height:78%!important}
- #lay.open{position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;max-width:none!important;width:auto!important;max-height:78%!important;overflow:auto}
+ #pop{left:0!important;right:0!important;bottom:var(--tb)!important;width:auto!important;max-height:calc(100% - var(--tb) - 140px)!important}
+ #lay.open{position:fixed!important;left:0!important;right:0!important;bottom:var(--tb)!important;top:auto!important;max-width:none!important;width:auto!important;max-height:calc(100% - var(--tb) - 140px)!important;overflow:auto}
 }
 @media (max-height:520px){#lay.open{max-width:none!important;left:0!important;right:auto!important;width:min(420px,60%)!important;border-radius:0 18px 18px 0!important;top:0!important;bottom:0!important;max-height:none!important}#lay.open::before{display:none}}
-/* dark map: sheets stay light for readability; floating buttons dark */
-body.dark #share,body.dark #laybtn,body.dark #grpbtn,body.dark #thmbtn,body.dark #credbtn{background:#2a2e2c!important;color:#eef0ef!important;box-shadow:0 1px 3px rgba(0,0,0,.6)!important}
-body.dark #me{background:#2a2e2c!important;color:#8ab4f8!important}
+/* dark map: controls stay light so they are easy to read */
 
 #lay label:has(#lbl){display:none!important}
-body.sheet #zm,body.popopen #zm,body.popopen #credbtn{display:none!important}
+body.sheet #zm,body.popopen #credbtn{display:none!important}
 #lay .svl .rt{display:flex;flex-direction:column;flex:1}#lay .svl .rt b{font-weight:500}
 #pop .back{background:none;border:0;color:var(--blue);font-size:16px;font-weight:600;padding:0;margin:0 0 6px;cursor:pointer}
+
+@media (min-width:761px) and (min-height:521px){#pop{left:16px!important;bottom:16px!important;width:400px!important;max-height:calc(100% - 32px)!important;border-radius:16px!important}#pop::before{display:none}
+ #lay{display:none}#lay.open{display:block!important;position:absolute!important;top:auto!important;right:auto!important;left:16px!important;bottom:16px!important;width:380px!important;max-width:none!important;max-height:calc(100% - 32px)!important;overflow:auto;border-radius:16px!important}#lay.open::before{display:none}}
+@media (max-height:520px){#pop{bottom:var(--tb)!important;max-height:calc(100% - var(--tb) - 8px)!important}#lay.open{bottom:var(--tb)!important}}
+
+#hdr{display:none!important}
+
+body.sheet #credbtn,body.popopen #gchip{display:none!important}
+body.sheet #scale,body.popopen #scale{display:none!important}
 </style></head><body>
 <canvas id="c"></canvas>
 <div id="hdr" class="box"><b id="ttl">Temecula offline map</b><ul class="how"><li><span class="k">Drag</span> the map to move around</li><li><span class="k">Scroll</span> or <span class="k">+ / −</span> buttons (bottom right) to zoom in and out</li><li><span class="k">Tap a place</span> (🏥🚒🚓🏫…) to see what it is and how far away</li><li><span class="k">◎ Where am I</span> shows you on the map (GPS works with no cell service)</li><li><span class="k">⌂</span> button jumps back to Temecula</li></ul><span class="src">Works with no internet. Map data: OpenStreetMap.</span></div>
@@ -137,7 +160,7 @@ body.sheet #zm,body.popopen #zm,body.popopen #credbtn{display:none!important}
 <label><input type="checkbox" class="dt" data-d="park" checked>Parks &amp; Camps</label>
 <label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
 <label><input type="checkbox" class="dt" data-d="dirt,trail,river" checked>Dirt Roads, Trails &amp; Creeks</label>
-<label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 44 · Nov 24</div>
+<label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 45 · Nov 24</div>
 </div>
 <button id="grpbtn" aria-label="Groups">Groups</button><button id="thmbtn" aria-label="Light or dark map"></button><button id="credbtn" aria-label="Map credits">i</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">Update available. Tap to update</button><button id="share" aria-label="Share my location">Share location</button><button id="me" aria-label="Show where I am">My location</button><button id="laybtn" aria-label="Show layers">Layers</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
@@ -360,7 +383,11 @@ document.getElementById('addpin').onclick=()=>{const s=prompt('Paste a shared lo
   if(!m){alert('No coordinates found in that text.');return;}let nm=m[3]?decodeURIComponent(m[3]):'';if(!nm){const mm=s.match(/^\s*(.+?) is here:/);nm=mm?mm[1]:(prompt('Name for this spot:','')||'Shared spot');}
   if(ly.classList.contains('open'))lb.onclick();addPin(+m[1],+m[2],nm,m[4]?+m[4]*1000:Date.now(),true);};
 setInterval(()=>{if(PINS.length)draw();},60000);
-document.getElementById('share').innerHTML=ICON.share+'Share location';document.getElementById('me').innerHTML=ICON.me+'My location';document.getElementById('laybtn').innerHTML=ICON.lay+'Layers';
+{const tb=document.createElement('nav');tb.id='tabbar';document.body.appendChild(tb);
+ const put=(id,ic,lab)=>{const b=document.getElementById(id);b.innerHTML='<span class="bdg">'+ic+'</span><span>'+lab+'</span>';tb.appendChild(b);};
+ put('laybtn',ICON.lay,'Layers');put('grpbtn',ICON.grp,'Groups');put('share',ICON.share,'Share');put('me',ICON.me,'Locate');
+ const gc=document.createElement('button');gc.id='gchip';gc.setAttribute('aria-label','Your group');document.body.appendChild(gc);gc.onclick=()=>famPanel();
+ new MutationObserver(()=>{document.getElementById('laybtn').classList.toggle('on',ly.classList.contains('open'));}).observe(ly,{attributes:true,attributeFilter:['class']});}
 {const tb=document.getElementById('thmbtn');const lab=()=>{tb.innerHTML=DARK?ICON.sun:ICON.moon;tb.setAttribute('aria-label',DARK?'Switch to light map':'Switch to dark map');};lab();tb.onclick=()=>{DARK=!DARK;document.body.classList.toggle('dark',DARK);try{localStorage.setItem('theme',DARK?'dark':'light')}catch(e){}lab();};}
 {const at=document.getElementById('attr');document.getElementById('credbtn').onclick=()=>{at.classList.toggle('show');clearTimeout(window._atT);if(at.classList.contains('show'))window._atT=setTimeout(()=>at.classList.remove('show'),6000);};}
 new MutationObserver(()=>{const pp=document.getElementById('pop');document.body.classList.toggle('popopen',pp.style.display==='block');if(ly.classList.contains('open')||pp.style.display==='block')gs.style.display='none';}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['style','class']});
@@ -394,7 +421,8 @@ function saveGroups(){if(!gById(FAM&&FAM.id))FAM=GROUPS[0]||null;ACTIVE=FAM?FAM.
   try{localStorage.setItem('groups',JSON.stringify(GROUPS));ACTIVE?localStorage.setItem('activeGroup',ACTIVE):localStorage.removeItem('activeGroup');localStorage.setItem('showGroups',SHOWG);}catch(e){}famLabel();draw();}
 const saveFam=saveGroups;
 function famLabel(){const el=document.getElementById('famn');if(el)el.textContent=FAM?FAM.name:'None';const g=document.getElementById('grpbtn');
-  if(g){g.innerHTML=FAM?'<span class="gdot" style="background:'+FAM.color+'"></span>'+esc(FAM.name):ICON.grp+'Groups';g.classList.toggle('on',!!FAM);g.style.background='';}}
+  if(g){g.innerHTML='<span class="bdg">'+ICON.grp+(FAM?'<i style="background:'+FAM.color+'"></i>':'')+'</span><span>Groups</span>';g.style.background='';}
+  const c=document.getElementById('gchip');if(c){c.innerHTML=FAM?'<span class="gdot" style="background:'+FAM.color+'"></span>'+esc(FAM.name):'';c.classList.toggle('on',!!FAM);}}
 const b64u=a=>btoa(String.fromCharCode(...a)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 const ub64u=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
 const keyOf=g=>crypto.subtle.importKey('raw',codeOk(g.code),'AES-GCM',false,['encrypt','decrypt']);
@@ -447,14 +475,14 @@ function groupPanel(g){if(!g)return famPanel();
   const ds=pop.querySelector('#famdis');if(ds)ds.onclick=async()=>{if(!confirm('Close "'+g.name+'" for everyone?\nNext, send the closing message to your group so it is removed from their phones too.'))return;
     let tok='';try{tok=await encFor(g,{close:1,t:Date.now()});}catch(e){}GROUPS=GROUPS.filter(x=>x!==g);PINS=PINS.filter(p=>p.g!==g.id);savePins();saveGroups();chime('close');famPanel();
     sendText('The "'+g.name+'" group is closed. Tap to remove it from your map app: '+APPURL+'#e='+tok+' (iPhone: open the map app, tap Layers, then Add a location someone sent you, and paste this message.)');};}
-document.getElementById('fambtn').onclick=famPanel;document.getElementById('grpbtn').onclick=famPanel;famLabel();
+document.getElementById('fambtn').onclick=famPanel;document.getElementById('grpbtn').onclick=famPanel;setTimeout(famLabel,0);
 
 function readJoin(){const m=location.hash.match(/join=([^.]+)\.([0-9A-Za-z]{28})/);if(!m)return false;history.replaceState(null,'',location.pathname);const n=decodeURIComponent(m[1]);
   const have=GROUPS.find(g=>g.code===normCode(m[2]));if(have){groupPanel(have);return true;}
   if(confirm('Join the private group "'+n+'"?')){if(famJoin(n,m[2]))groupPanel(FAM);}return true;}
 window.addEventListener('hashchange',readJoin);setTimeout(readJoin,300);
 
-const APPV=44;
+const APPV=45;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
@@ -468,7 +496,7 @@ const APPV=44;
 {const myn=document.getElementById('myn');const shown=()=>{let n='';try{n=localStorage.getItem('myname')||''}catch(e){}myn.textContent=n||'Not set';};shown();
  document.getElementById('setname').onclick=()=>{let n='';try{n=localStorage.getItem('myname')||''}catch(e){}const v=prompt('Your name (shown to family when you share):',n);if(v===null)return;try{localStorage.setItem('myname',v.trim())}catch(e){}shown();};
  const _mn=myName;myName=function(){const r=_mn();shown();return r;};}
-{const shb=document.getElementById('share');const _lbo=lb.onclick;lb.onclick=()=>{_lbo();shb.style.display=ly.classList.contains('open')?'none':'';};cv.addEventListener('pointerdown',()=>{shb.style.display='';});}
+{const shb=document.getElementById('share');const _lbo=lb.onclick;lb.onclick=()=>{_lbo();};}
 window.addEventListener('resize',resize);
 const cb=document.getElementById('cbtn');if(cb){const ch=document.getElementById('cheat');cb.onclick=()=>{ch.style.display='block';};document.getElementById('cx').onclick=()=>{ch.style.display='none';};}
 let st='map';useDS(st);z=DS[st].z;setCenter(...DS[st].c);resize();readHash();
