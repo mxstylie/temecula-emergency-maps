@@ -37,7 +37,7 @@ html,body{margin:0;height:100%;overflow:hidden;font:14px/1.4 system-ui,-apple-sy
 #hdr{top:76px}
 #laybtn{display:none;position:absolute;z-index:3;right:6px;bottom:250px;border:0;border-radius:24px;background:#fff;font-size:16px;font-weight:700;padding:10px 14px;box-shadow:0 2px 10px #0004;cursor:pointer}
 #me{position:absolute;z-index:3;right:10px;bottom:190px;border:0;border-radius:30px;background:#1a73e8;color:#fff;font-size:19px;font-weight:800;padding:12px 18px;box-shadow:0 3px 12px #0005;cursor:pointer}
-#gps{display:none;position:absolute;z-index:3;left:50%;transform:translateX(-50%);top:70px;background:#fff;border-radius:10px;padding:8px 14px;font-size:15px;font-weight:600;box-shadow:0 2px 10px #0004;max-width:calc(100% - 20px);text-align:center}
+#gps{display:none;position:absolute;z-index:2;pointer-events:none;left:50%;transform:translateX(-50%);top:70px;background:#fff;border-radius:10px;padding:8px 14px;font-size:15px;font-weight:600;box-shadow:0 2px 10px #0004;max-width:calc(100% - 20px);text-align:center}
 #gps.ok{border-left:6px solid #1a73e8}#gps.wait{border-left:6px solid #f0a000}#gps.bad{border-left:6px solid #d62839}
 .fromme{margin-top:8px;font-size:18px;background:#e8f0fe;border-radius:6px;padding:6px 10px;color:#1a3d7c}
 @media (max-width:760px),(max-height:520px){
@@ -66,7 +66,7 @@ html,body{margin:0;height:100%;overflow:hidden;font:14px/1.4 system-ui,-apple-sy
 <label><input type="checkbox" class="dt" data-d="park" checked>Parks &amp; Camps</label>
 <label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
 <label><input type="checkbox" class="dt" data-d="dirt,trail,river" checked>Dirt Roads, Trails &amp; Creeks</label>
-<label class="svl"><input type="checkbox" id="saver">Battery Saver (dark map, GPS only when you tap)</label><button id="fambtn" class="sb2">Family Group: <span id="famn"></span></button><button id="addpin" class="sb2">Add a Location Someone Sent You</button><button id="setname" class="sb2">My Name: <span id="myn"></span></button><div class="ver">App Version 32 · Nov 24</div>
+<label class="svl"><input type="checkbox" id="saver">Battery Saver (dark map, GPS only when you tap)</label><button id="fambtn" class="sb2">Family Group: <span id="famn"></span></button><button id="addpin" class="sb2">Add a Location Someone Sent You</button><button id="setname" class="sb2">My Name: <span id="myn"></span></button><div class="ver">App Version 33 · Nov 24</div>
 </div>
 <button id="grpbtn" aria-label="Family group">🔒 Group</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">⬆️ Update needed — tap here</button><button id="share" aria-label="Share my location">📤 Share my location</button><button id="me" aria-label="Show where I am">◎ Where am I</button><button id="laybtn" aria-label="Show layers">☰ Layers</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
@@ -213,7 +213,7 @@ function distMi(a,b,c,d){const r=Math.PI/180;const x=(d-b)*r*Math.cos((a+c)/2*r)
 function brg(a,b,c,d){const r=Math.PI/180;const y=Math.sin((d-b)*r)*Math.cos(c*r),x=Math.cos(a*r)*Math.sin(c*r)-Math.sin(a*r)*Math.cos(c*r)*Math.cos((d-b)*r);return (Math.atan2(y,x)/r+360)%360;}
 function cmp(d){return ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"][Math.round(d/22.5)%16];}
 let ME=null,follow=false,wid=null;let SAVER=true;try{SAVER=localStorage.getItem('saver')!=='0'}catch(e){}document.body.classList.toggle('dark',SAVER);const gs=document.getElementById('gps');
-let gpsHid=false;function gpsMsg(s,cls){gs.textContent=s;gs.className=cls||'';if(cls==='ok'&&gpsHid)return;gs.style.display='block';}
+let gpsHid=false,gpsT=null;function gpsMsg(s,cls){gs.textContent=s;gs.className=cls||'';if(cls==='ok'&&gpsHid)return;gs.style.display='block';clearTimeout(gpsT);if(cls!=='wait')gpsT=setTimeout(()=>{gs.style.display='none';},cls==='ok'?5000:9000);}
 function startGPS(){gpsHid=false;if(!('geolocation' in navigator)){gpsMsg('This browser has no GPS access','bad');return;}
   if(wid!=null){follow=true;if(ME){if(z<13)z=13;setCenter(ME.la,ME.lo);draw();}return;}
   follow=true;gpsMsg('📡 Searching for GPS satellites… (can take 30 s – a few min with no cell service; go outside)','wait');const gt0=Date.now();
@@ -272,6 +272,7 @@ document.getElementById('addpin').onclick=()=>{const s=prompt('Paste a shared lo
   if(!m){alert('No coordinates found in that text.');return;}let nm=m[3]?decodeURIComponent(m[3]):'';if(!nm){const mm=s.match(/^\s*(.+?) is here:/);nm=mm?mm[1]:(prompt('Name for this spot:','')||'Shared spot');}
   if(ly.classList.contains('open'))lb.onclick();addPin(+m[1],+m[2],nm,m[4]?+m[4]*1000:Date.now(),true);};
 setInterval(()=>{if(PINS.length)draw();},60000);
+new MutationObserver(()=>{const pp=document.getElementById('pop');if(ly.classList.contains('open')||pp.style.display==='block')gs.style.display='none';}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['style','class']});
 cv.addEventListener('pointerdown',()=>{const pp=document.getElementById('pop');window._hadPanel=ly.classList.contains('open')||getComputedStyle(pp).display!=='none';},true);
 {const _p1=pick;pick=function(x,y){const pp=document.getElementById('pop');_p1(x,y);if(!window._hadPanel&&getComputedStyle(pp).display==='none'){const h=document.body.classList.toggle('noui');const tip=document.getElementById('uitip');if(h){tip.style.display='block';clearTimeout(window._tipT);window._tipT=setTimeout(()=>tip.style.display='none',2500);}else tip.style.display='none';}};}
 /* QRCode for JavaScript (c) 2009 Kazuhiko Arase, MIT license; node port from qrcode-terminal (Apache-2.0) */
@@ -1575,7 +1576,7 @@ function readJoin(){const m=location.hash.match(/join=([^.]+)\.([0-9A-Za-z]{28})
   if(confirm('Join the private family group "'+n+'"?'+(FAM?'\n(This replaces your current group "'+FAM.name+'".)':''))){if(famJoin(n,m[2]))famPanel();}return true;}
 window.addEventListener('hashchange',readJoin);setTimeout(readJoin,300);
 
-const APPV=32;
+const APPV=33;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
