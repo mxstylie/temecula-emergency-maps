@@ -191,7 +191,7 @@ details.more[open] summary::after{content:" ▴"}
 <label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
 <label><input type="checkbox" class="dt" data-d="dirt,trail,river" checked>Dirt Roads, Trails &amp; Creeks</label>
 <label><input type="checkbox" id="rng" checked>Mile Rings</label>
-</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 51 · Nov 25</div>
+</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 52 · Nov 25</div>
 </div>
 <button id="grpbtn" aria-label="Groups">Groups</button><button id="thmbtn" aria-label="Light or dark map"></button><button id="credbtn" aria-label="Map credits">i</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">Update available. Tap to update</button><button id="share" aria-label="Share my location">Share location</button><button id="me" aria-label="Show where I am">My location</button><button id="laybtn" aria-label="Show layers">Layers</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
@@ -669,7 +669,7 @@ async function sndListen(){stopListen();const pop=openPop('<h3>Listening…</h3>
 document.getElementById('share').onclick=shareSheet;
 window._snd={sndPack,sndRender,sndOpen,wavOf,inviteBytes,closeBytes,G:()=>GROUPS};saveInbox();
 
-const APPV=51;
+const APPV=52;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
@@ -677,7 +677,7 @@ const APPV=51;
    const c=await caches.open('tem-maps');const h={headers:{'Content-Type':'text/html'}};await c.put('index.html',new Response(body,h));await c.put('./',new Response(body,h));try{const mf=await fetch('manifest.webmanifest?c='+Date.now(),{cache:'no-store'});if(mf.ok)await c.put('manifest.webmanifest',mf);}catch(e){}
    ubar.textContent='✅ Updated! Restarting…';setTimeout(()=>location.reload(),700);}
   catch(e){ubar.textContent='⚠️ No internet — tap to try again';}};
- chk();setInterval(chk,30*60000);window.addEventListener('online',chk);}
+ chk();setInterval(chk,30*60000);window.addEventListener('online',chk);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chk();});window.addEventListener('focus',chk);window.addEventListener('pageshow',chk);}
 
 
 {const myn=document.getElementById('myn');const shown=()=>{let n='';try{n=localStorage.getItem('myname')||''}catch(e){}myn.textContent=n||'Not set';};shown();
