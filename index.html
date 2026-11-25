@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Offline Emergency SoCal</title><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Offline Emergency SoCal"><meta name="application-name" content="Offline Emergency SoCal"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#2f6b3f"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
 html,body{margin:0;height:100%;overflow:hidden;font:14px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;background:#e8e6e1}
@@ -178,6 +178,16 @@ details.more[open] summary::after{content:" ▴"}
 /* phones: menus never cover more than ~60% of the screen, so there's always map to tap */
 @media (max-width:760px) and (min-height:521px){#pop,#lay.open{max-height:calc(62vh - var(--tb))!important;overflow-y:auto!important;overscroll-behavior:contain}}
 #layx{position:sticky;float:right;top:0;margin:-8px -6px 0 0;width:38px;height:38px;border-radius:50%;border:0;background:#eef0ef;color:var(--ink);font-size:22px;line-height:38px;cursor:pointer;z-index:2}
+
+/* always-there way back when the buttons are hidden */
+#showui{display:none;position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:9;border:0;border-radius:28px;background:var(--acc);color:#fff;font:600 17px/1 inherit;padding:16px 20px;box-shadow:0 3px 14px rgba(0,0,0,.35);cursor:pointer}
+body.noui #showui{display:block!important}
+
+/* nothing may ever make the page wider/taller than the phone screen (that pushed the menu off screen) */
+html,body{width:100%!important;max-width:100%!important;height:100%!important;overflow:hidden!important;overscroll-behavior:none}
+#uitip{white-space:normal!important;max-width:calc(100% - 40px)!important;width:max-content;text-align:center;bottom:calc(var(--tb) + 12px)!important;font-size:15px!important;line-height:1.3}
+body.noui #uitip{bottom:84px!important}
+#gps,#updbar,#errbar{max-width:calc(100% - 24px)!important;white-space:normal!important}
 </style></head><body>
 <canvas id="c"></canvas>
 <div id="hdr" class="box"><b id="ttl">Offline Emergency SoCal</b><ul class="how"><li><span class="k">Drag</span> the map to move around</li><li><span class="k">Scroll</span> or <span class="k">+ / −</span> buttons (bottom right) to zoom in and out</li><li><span class="k">Tap a place</span> (🏥🚒🚓🏫…) to see what it is and how far away</li><li><span class="k">◎ Where am I</span> shows you on the map (GPS works with no cell service)</li><li><span class="k">⌂</span> button jumps back to Temecula</li></ul><span class="src">Works with no internet. Map data: OpenStreetMap.</span></div>
@@ -195,7 +205,7 @@ details.more[open] summary::after{content:" ▴"}
 <label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
 <label><input type="checkbox" class="dt" data-d="dirt,trail,river" checked>Dirt Roads, Trails &amp; Creeks</label>
 <label><input type="checkbox" id="rng" checked>Mile Rings</label>
-</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 53 · Nov 25</div>
+</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 54 · Nov 25</div>
 </div>
 <button id="grpbtn" aria-label="Groups">Groups</button><button id="thmbtn" aria-label="Light or dark map"></button><button id="credbtn" aria-label="Map credits">i</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">Update available. Tap to update</button><button id="share" aria-label="Share my location">Share location</button><button id="me" aria-label="Show where I am">My location</button><button id="laybtn" aria-label="Show layers">Layers</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
@@ -684,7 +694,16 @@ window._snd={sndPack,sndRender,sndOpen,wavOf,inviteBytes,closeBytes,G:()=>GROUPS
    el.addEventListener('touchend',e=>{if(y0===null)return;const dy=e.changedTouches[0].clientY-y0;el.style.transform='';y0=null;if(dy>70)close();});};
  swipe(pop,shut);swipe(ly,()=>{if(ly.classList.contains('open'))lb.onclick();});}
 
-const APPV=53;
+// ---------- guaranteed way to bring the buttons back ----------
+{const s=document.createElement('button');s.id='showui';s.textContent='Show buttons';s.setAttribute('aria-label','Show buttons');
+ s.addEventListener('pointerdown',e=>e.stopPropagation());s.onclick=e=>{e.stopPropagation();document.body.classList.remove('noui');const t=document.getElementById('uitip');if(t)t.style.display='none';};
+ document.body.appendChild(s);document.body.classList.remove('noui');
+ const t=document.getElementById('uitip');if(t)t.textContent='Buttons hidden. Tap the map to bring them back.';}
+// if anything breaks at startup, say so on screen instead of silently losing the buttons
+window.addEventListener('error',e=>{try{let b=document.getElementById('errbar');if(!b){b=document.createElement('div');b.id='errbar';b.style.cssText='position:fixed;left:8px;right:8px;top:8px;z-index:99;background:#c62828;color:#fff;padding:10px 12px;border-radius:10px;font:14px system-ui';document.body.appendChild(b);}
+  b.textContent='Something went wrong: '+(e.message||'error')+' (line '+(e.lineno||'?')+'). Tell Claude this message.';document.body.classList.remove('noui');}catch(_){}});
+
+const APPV=54;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
