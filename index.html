@@ -171,6 +171,9 @@ details.more[open] summary::after{content:" ▴"}
 @media (max-height:520px){:root{--tb:58px}}
 
 .meter{height:12px;border-radius:6px;background:#e6e9e7;overflow:hidden;margin:10px 0}.meter i{display:block;height:100%;width:0;background:var(--acc);transition:width .08s}
+
+.newdot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--red);margin-right:8px;vertical-align:middle}
+.hasnew{position:relative}.hasnew::after{content:'';position:absolute;top:6px;left:calc(50% + 8px);width:10px;height:10px;border-radius:50%;background:var(--red)}
 </style></head><body>
 <canvas id="c"></canvas>
 <div id="hdr" class="box"><b id="ttl">Offline Emergency SoCal</b><ul class="how"><li><span class="k">Drag</span> the map to move around</li><li><span class="k">Scroll</span> or <span class="k">+ / −</span> buttons (bottom right) to zoom in and out</li><li><span class="k">Tap a place</span> (🏥🚒🚓🏫…) to see what it is and how far away</li><li><span class="k">◎ Where am I</span> shows you on the map (GPS works with no cell service)</li><li><span class="k">⌂</span> button jumps back to Temecula</li></ul><span class="src">Works with no internet. Map data: OpenStreetMap.</span></div>
@@ -188,7 +191,7 @@ details.more[open] summary::after{content:" ▴"}
 <label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
 <label><input type="checkbox" class="dt" data-d="dirt,trail,river" checked>Dirt Roads, Trails &amp; Creeks</label>
 <label><input type="checkbox" id="rng" checked>Mile Rings</label>
-</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 49 · Nov 25</div>
+</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 50 · Nov 25</div>
 </div>
 <button id="grpbtn" aria-label="Groups">Groups</button><button id="thmbtn" aria-label="Light or dark map"></button><button id="credbtn" aria-label="Map credits">i</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">Update available. Tap to update</button><button id="share" aria-label="Share my location">Share location</button><button id="me" aria-label="Show where I am">My location</button><button id="laybtn" aria-label="Show layers">Layers</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
@@ -577,37 +580,82 @@ async function playPayload(p,times){const ac=sAC();const pcm=sndRender(p,ac.samp
   let t=ac.currentTime+0.1;const g=ac.createGain();g.gain.value=1;g.connect(ac.destination);
   for(let i=0;i<times;i++){const s=ac.createBufferSource();s.buffer=buf;s.connect(g);s.start(t);t+=buf.duration+1.2;}
   return (t-ac.currentTime)*1000;}
-function shareSheet(){const pop=openPop('<h3>Share</h3><p class="lead">No cell service needed for sound. Hold the phones close together, or hold your phone up to a walkie-talkie.</p>'+
+// ---- received-locations inbox (kept on the phone so you can look later) ----
+const tmS=t=>{const d=new Date(t),td=new Date();return (d.toDateString()===td.toDateString()?'':d.toLocaleDateString([],{month:'short',day:'numeric'})+', ')+d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});};
+const hex=b=>Array.from(b,x=>x.toString(16).padStart(2,'0')).join(''),unhex=h=>new Uint8Array(h.match(/../g).map(x=>parseInt(x,16)));
+let INBOX=[];try{INBOX=JSON.parse(localStorage.getItem('inbox')||'[]')}catch(e){}
+function saveInbox(){INBOX=INBOX.slice(-60);try{localStorage.setItem('inbox',JSON.stringify(INBOX))}catch(e){}
+  const n=INBOX.filter(q=>!q.seen).length,sb=document.querySelector('#tabbar [data-t="share"],#share');if(sb)sb.classList.toggle('hasnew',n>0);}
+// b = decoded bytes; returns a short status line
+async function gotSound(b,via){const r=await sndOpen(b);if(!r)return null;if(r.locked)return {locked:true};
+  const key=hex(b);const old=INBOX.find(q=>q.p===key);if(old)return {dup:true,q:old};
+  const q={n:r.o.n||'Someone',la:r.o.la,lo:r.o.lo,t:r.o.t,h:Date.now(),g:r.g?r.g.id:null,gn:r.g?r.g.name:'',p:key,via,seen:false};
+  INBOX.push(q);saveInbox();addPin(q.la,q.lo,q.n,q.t,false,q.g);chime('join');return {q};}
+function inboxRow(q,i){return '<button class="row nav" data-ib="'+i+'"><span class="rt"><b>'+(q.seen?'':'<i class="newdot"></i>')+esc(q.n)+' sent their location</b><span class="sub">Sent '+tmS(q.t)+(q.gn?' · '+esc(q.gn):'')+'</span></span></button>';}
+function inboxSheet(){const list=INBOX.map((q,i)=>[q,i]).reverse();
+  const pop=openPop('<h3>Locations you got</h3>'+(list.length?list.map(([q,i])=>inboxRow(q,i)).join(''):'<p class="lead">Nothing yet. When you listen and get a location, it is saved here.</p>')+
+    '<button id="ibback" class="row nav"><span class="rt"><b>Back</b></span></button>');
+  pop.querySelectorAll('[data-ib]').forEach(el=>el.onclick=()=>inboxItem(+el.dataset.ib));pop.querySelector('#ibback').onclick=shareSheet;}
+function inboxItem(i){const q=INBOX[i];if(!q)return;q.seen=true;saveInbox();
+  const pop=openPop('<h3>'+esc(q.n)+'</h3><p class="lead">Sent their location at <b>'+tmS(q.t)+'</b>'+(q.gn?' in <b>'+esc(q.gn)+'</b>':'')+'.</p><div class="code">'+q.la.toFixed(5)+', '+q.lo.toFixed(5)+'</div>'+
+    '<button id="ibshow" class="pri">Show on map</button>'+
+    '<button id="ibplay" class="row nav"><span class="rt"><b>Play the sound again</b><span class="sub">Pass it on to someone else nearby or over a walkie-talkie</span></span></button>'+
+    '<button id="ibdel" class="row dng">Delete</button>');
+  pop.querySelector('#ibshow').onclick=()=>{pop.style.display='none';const p=PINS.find(x=>x.name===q.n&&(x.g||null)===q.g)||addPin(q.la,q.lo,q.n,q.t,false,q.g);if(z<14)z=14;setCenter(q.la,q.lo);follow=false;sel=p;draw();showPin(p);};
+  pop.querySelector('#ibplay').onclick=()=>playPayload(unhex(q.p),1);
+  pop.querySelector('#ibdel').onclick=()=>{INBOX.splice(i,1);saveInbox();inboxSheet();};}
+// ---- decode a recording (voice memo, saved sound file) any time later ----
+function pickRecording(){const inp=document.createElement('input');inp.type='file';inp.accept='audio/*,video/*,.wav,.m4a,.mp3,.aac,.ogg,.webm,.3gp,.amr';
+  inp.onchange=async()=>{const f=inp.files[0];if(!f)return;const pop=openPop('<h3>Checking the recording…</h3><p class="lead">'+esc(f.name)+'</p>');
+    let res=[];try{const ac=sAC();const ab=await ac.decodeAudioData(await f.arrayBuffer());const x=ab.getChannelData(0);
+      const found=[];const rx=new SndRx(ab.sampleRate,b=>found.push(b));for(let i=0;i<x.length;i+=4096)rx.push(x.subarray(i,Math.min(x.length,i+4096)));rx.push(new Float32Array(ab.sampleRate));
+      for(const b of found)res.push(await gotSound(b,'file'));}catch(e){openPop('<h3>Could not open that file</h3><p class="lead">Try a different recording. Voice memo, .wav, .m4a or .mp3 files work.</p>');return;}
+    const got=res.filter((r,k)=>r&&r.q&&res.findIndex(x=>x&&x.q===r.q)===k),locked=res.some(r=>r&&r.locked);
+    openPop('<h3>'+(got.length?'Found '+got.length+' location'+(got.length>1?'s':''):'No location found')+'</h3>'+
+      (got.length?got.map(r=>inboxRow(r.q,INBOX.indexOf(r.q))).join(''):'<p class="lead">'+(locked?'It has a private location from a group you are not in.':'The recording may be too quiet or too noisy. Record closer to the sound.')+'</p>'));
+    document.querySelectorAll('#pop [data-ib]').forEach(el=>el.onclick=()=>inboxItem(+el.dataset.ib));};
+  inp.click();}
+// ---- save my location as a sound file to play later ----
+function wavOf(pcm,sr){const n=pcm.length,u=new DataView(new ArrayBuffer(44+n*2));const w=(o,s)=>{for(let i=0;i<s.length;i++)u.setUint8(o+i,s.charCodeAt(i));};
+  w(0,'RIFF');u.setUint32(4,36+n*2,true);w(8,'WAVEfmt ');u.setUint32(16,16,true);u.setUint16(20,1,true);u.setUint16(22,1,true);u.setUint32(24,sr,true);u.setUint32(28,sr*2,true);u.setUint16(32,2,true);u.setUint16(34,16,true);w(36,'data');u.setUint32(40,n*2,true);
+  for(let i=0;i<n;i++)u.setInt16(44+i*2,Math.max(-1,Math.min(1,pcm[i]))*32767,true);return new Blob([u.buffer],{type:'audio/wav'});}
+async function saveSoundFile(p,name){const sr=44100,one=sndRender(p,sr),gap=sr;const pcm=new Float32Array(one.length*2+gap);pcm.set(one);pcm.set(one,one.length+gap);
+  const fn=('location-'+(name||'me')+'-'+new Date().toTimeString().slice(0,5).replace(':','')+'.wav').replace(/[^\w.-]/g,'_');const blob=wavOf(pcm,sr);
+  try{const file=new File([blob],fn,{type:'audio/wav'});if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});return;}}catch(e){if(e&&e.name==='AbortError')return;}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);}
+function shareSheet(){const nn=INBOX.filter(q=>!q.seen).length,last=INBOX[INBOX.length-1];
+  const pop=openPop('<h3>Share</h3><p class="lead">No cell service needed for sound. Hold the phones close together, or hold your phone up to a walkie-talkie.</p>'+
    '<button id="sndsend" class="pri">Send my location by sound</button>'+
    '<button id="sndlisten" class="row nav"><span class="rt"><b>Listen for a location</b><span class="sub">Get someone else’s location by sound</span></span></button>'+
+   '<button id="sndinbox" class="row nav"><span class="rt"><b>'+(nn?'<i class="newdot"></i>':'')+'Locations you got'+(INBOX.length?' ('+INBOX.length+')':'')+'</b><span class="sub">'+(last?esc(last.n)+' sent theirs at '+tmS(last.t):'Saved here so you can look later')+'</span></span></button>'+
+   '<button id="sndfile" class="row nav"><span class="rt"><b>Open a recording</b><span class="sub">Find a location in a voice memo or sound file</span></span></button>'+
    '<button id="shnum" class="row nav"><span class="rt"><b>Show my location as numbers</b><span class="sub">To read out loud over a walkie-talkie</span></span></button>'+
    '<button id="shtxt" class="row nav"><span class="rt"><b>Send by text message</b><span class="sub">Only works when you have cell service</span></span></button>'+
    (FAM?'<p class="lead">Private to <b>'+esc(FAM.name)+'</b>. Only your group can open it.</p>':''));
-  pop.querySelector('#sndsend').onclick=sndSendMine;pop.querySelector('#sndlisten').onclick=sndListen;
+  pop.querySelector('#sndsend').onclick=sndSendMine;pop.querySelector('#sndlisten').onclick=sndListen;pop.querySelector('#sndinbox').onclick=inboxSheet;pop.querySelector('#sndfile').onclick=pickRecording;
   pop.querySelector('#shnum').onclick=()=>shareMe();pop.querySelector('#shtxt').onclick=()=>shareMe();}
 async function sndSendMine(){const n=myName();const pop=openPop('<h3>Send by sound</h3><p class="lead">Finding your location…</p>');
   const m=await waitFix(90000);if(!m){openPop('<h3>Send by sound</h3><p class="lead">No GPS signal yet. Go outside and try again.</p>');return;}
   const o={la:m.la,lo:m.lo,n,t:Date.now()};const p=await sndPack(o);
   const show=()=>{const pp=openPop('<h3>Sending…</h3><div class="code big">'+m.la.toFixed(5)+'<br>'+m.lo.toFixed(5)+'</div><p class="lead">Turn your volume up. Keep the other phone close, or hold this phone to the walkie-talkie and press talk. The other person taps <b>Share → Listen for a location</b>.</p>'+
-     (FAM?'<p class="lead">Private to <b>'+esc(FAM.name)+'</b>.</p>':'')+'<button id="sndagain" class="pri">Play again</button>');
-    pp.querySelector('#sndagain').onclick=async()=>{await playPayload(p,1);};};
+     (FAM?'<p class="lead">Private to <b>'+esc(FAM.name)+'</b>.</p>':'')+'<button id="sndagain" class="pri">Play again</button><button id="sndsave" class="row nav"><span class="rt"><b>Save as a sound file</b><span class="sub">Play it later, or leave it on a recorder</span></span></button>');
+    pp.querySelector('#sndagain').onclick=async()=>{await playPayload(p,1);};pp.querySelector('#sndsave').onclick=()=>saveSoundFile(p,n);};
   show();await playPayload(p,2);}
 let _mic=null;function stopListen(){if(_mic){_mic.stream.getTracks().forEach(t=>t.stop());try{_mic.proc.disconnect();_mic.src.disconnect();}catch(e){}_mic=null;}}
 async function sndListen(){stopListen();const pop=openPop('<h3>Listening…</h3><p class="lead">Hold this phone near the other phone or the walkie-talkie speaker.</p><div class="meter"><i id="lvl"></i></div><div id="heard"></div><button id="sndstop" class="row dng">Stop listening</button>');
   pop.querySelector('.x').addEventListener('click',stopListen);pop.querySelector('#sndstop').onclick=()=>{stopListen();pop.style.display='none';};
   let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});}catch(e){openPop('<h3>Microphone is off</h3><p class="lead">Allow the microphone for this app in your phone’s settings, then try again.</p>');return;}
   const ac=sAC();const src=ac.createMediaStreamSource(stream);const proc=ac.createScriptProcessor(4096,1,1);const lv=document.getElementById('lvl');
-  const rx=new SndRx(ac.sampleRate,async b=>{const r=await sndOpen(b);const h=document.getElementById('heard');if(!r||!h)return;
+  const rx=new SndRx(ac.sampleRate,async b=>{const r=await gotSound(b,'mic');const h=document.getElementById('heard');if(!r||!h||r.dup)return;
       if(r.locked){h.insertAdjacentHTML('afterbegin','<div class="row stat"><span class="rt"><b>Private location from another group</b><span class="sub">You are not in that group</span></span></div>');return;}
-      addPin(r.o.la,r.o.lo,r.o.n||'Shared spot',r.o.t,false,r.g?r.g.id:null);chime('join');
-      h.insertAdjacentHTML('afterbegin','<div class="row stat"><span class="rt"><b>Got '+esc(r.o.n||'a location')+'</b><span class="sub">'+(r.g?esc(r.g.name)+', ':'')+r.o.la.toFixed(5)+', '+r.o.lo.toFixed(5)+'</span></span></div>');},
+      const i=INBOX.indexOf(r.q);h.insertAdjacentHTML('afterbegin',inboxRow(r.q,i));h.querySelector('[data-ib="'+i+'"]').onclick=()=>{stopListen();inboxItem(i);};},
     v=>{if(lv)lv.style.width=Math.round(v*100)+'%';});
   proc.onaudioprocess=e=>rx.push(new Float32Array(e.inputBuffer.getChannelData(0)));
   src.connect(proc);const mute=ac.createGain();mute.gain.value=0;proc.connect(mute);mute.connect(ac.destination);_mic={stream,proc,src};}
 document.getElementById('share').onclick=shareSheet;
-window._snd={sndPack,sndRender,sndOpen};
+window._snd={sndPack,sndRender,sndOpen,wavOf};saveInbox();
 
-const APPV=49;
+const APPV=50;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
