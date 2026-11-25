@@ -66,7 +66,7 @@ html,body{margin:0;height:100%;overflow:hidden;font:14px/1.4 system-ui,-apple-sy
 <label><input type="checkbox" class="dt" data-d="park" checked>Parks &amp; Camps</label>
 <label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
 <label><input type="checkbox" class="dt" data-d="dirt,trail,river" checked>Dirt Roads, Trails &amp; Creeks</label>
-<label class="svl"><input type="checkbox" id="saver">Battery Saver (GPS only when you tap)</label><button id="fambtn" class="sb2">Family Group: <span id="famn"></span></button><button id="addpin" class="sb2">Add a Location Someone Sent You</button><button id="setname" class="sb2">My Name: <span id="myn"></span></button><div class="ver">App Version 41 · Nov 24</div>
+<label class="svl"><input type="checkbox" id="saver">Battery Saver (GPS only when you tap)</label><button id="fambtn" class="sb2">Groups: <span id="famn"></span></button><button id="addpin" class="sb2">Add a Location Someone Sent You</button><button id="setname" class="sb2">My Name: <span id="myn"></span></button><div class="ver">App Version 42 · Nov 24</div>
 </div>
 <button id="grpbtn" aria-label="Family group">🔒 Group</button><button id="thmbtn" aria-label="Light or dark map"></button><button id="credbtn" aria-label="Map credits">ⓘ</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">⬆️ Update needed — tap here</button><button id="share" aria-label="Share my location">📤 Share my location</button><button id="me" aria-label="Show where I am">◎ Where am I</button><button id="laybtn" aria-label="Show layers">☰ Layers</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
@@ -246,23 +246,24 @@ const APPURL='https://mxstylie.github.io/temecula-emergency-maps/';
 let PINS=[];try{PINS=JSON.parse(localStorage.getItem('pins')||'[]')}catch(e){}
 const savePins=()=>{try{localStorage.setItem('pins',JSON.stringify(PINS))}catch(e){}};
 const ago=t=>{const m=Math.round((Date.now()-t)/60000);return m<1?'just now':m<60?m+' min ago':m<1440?Math.round(m/60)+' hr ago':Math.round(m/1440)+' days ago';};
-function addPin(la,lo,name,t,go){if(!isFinite(la)||!isFinite(lo)||Math.abs(la)>90||Math.abs(lo)>180)return null;name=(name||'Shared spot').slice(0,40);t=t||Date.now();
-  PINS=PINS.filter(q=>q.name!==name);const q={pin:1,lat:la,lon:lo,name,t};PINS.push(q);savePins();
+function addPin(la,lo,name,t,go,g){g=g||null;if(!isFinite(la)||!isFinite(lo)||Math.abs(la)>90||Math.abs(lo)>180)return null;name=(name||'Shared spot').slice(0,40);t=t||Date.now();
+  PINS=PINS.filter(q=>!(q.name===name&&(q.g||null)===g));const q={pin:1,lat:la,lon:lo,name,t,g};PINS.push(q);savePins();
   if(go){if(z<14)z=14;setCenter(la,lo);follow=false;sel=q;draw();showPin(q);}else draw();return q;}
 function readHash(){const me=location.hash.match(/e=([A-Za-z0-9_-]+)/);if(me){history.replaceState(null,'',location.pathname);openSecret(me[1]);return;}const m=location.hash.match(/p=(-?[\d.]+),(-?[\d.]+)(?:,([^,]*))?(?:,(\d+))?/);if(!m)return;
   addPin(+m[1],+m[2],m[3]?decodeURIComponent(m[3]):'',m[4]?+m[4]*1000:Date.now(),true);history.replaceState(null,'',location.pathname);}
 window.addEventListener('hashchange',readHash);
 function showPin(q){sel=q;const pop=document.getElementById('pop');let mine='';
   if(ME){const d=distMi(ME.la,ME.lo,q.lat,q.lon),b=brg(ME.la,ME.lo,q.lat,q.lon);mine='<div class="fromme">From you: <b>'+d.toFixed(1)+' mi</b> · heading <b>'+Math.round(b)+'° '+cmp(b)+'</b></div>';}
-  pop.innerHTML='<button class="x" aria-label="Close">×</button><div class="pk">🧍 '+esc(q.name)+'</div><div style="color:#555;font-size:15px">Shared location · '+ago(q.t)+' ('+new Date(q.t).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})+')</div>'+mine+
+  pop.innerHTML='<button class="x" aria-label="Close">×</button><div class="pk">🧍 '+esc(q.name)+'</div>'+(q.g&&gById(q.g)?'<div style="font-weight:800;color:'+gById(q.g).color+'">🔒 '+esc(gById(q.g).name)+'</div>':'')+'<div style="color:#555;font-size:15px">Shared location · '+ago(q.t)+' ('+new Date(q.t).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})+')</div>'+mine+
    '<table><tr><td>Coordinates</td><td>'+q.lat.toFixed(5)+', '+q.lon.toFixed(5)+'</td></tr></table><button id="delpin" class="sb2">🗑 Remove this pin</button>';
   pop.style.display='block';pop.querySelector('.x').onclick=()=>{sel=null;pop.style.display='none';draw();};
   document.getElementById('delpin').onclick=()=>{PINS=PINS.filter(x=>x!==q);savePins();sel=null;pop.style.display='none';draw();};draw();}
-function drawPins(px){window._px=px;for(const q of PINS){const [x,y]=px(q.lat,q.lon);if(x<-40||y<-40||x>W+40||y>H+40)continue;
-  cx.beginPath();cx.arc(x,y-16,13,Math.PI*0.8,Math.PI*0.2,false);cx.lineTo(x,y);cx.closePath();cx.fillStyle=q===sel?'#ff9f1c':'#e8590c';cx.fill();cx.lineWidth=2.5;cx.strokeStyle='#fff';cx.stroke();
+const pinVis=q=>SHOWG==='all'||q.g===SHOWG;const pinCol=q=>{const g=q.g&&gById(q.g);return g?g.color:'#e8590c';};
+function drawPins(px){window._px=px;for(const q of PINS){if(!pinVis(q))continue;const [x,y]=px(q.lat,q.lon);if(x<-40||y<-40||x>W+40||y>H+40)continue;
+  cx.beginPath();cx.arc(x,y-16,13,Math.PI*0.8,Math.PI*0.2,false);cx.lineTo(x,y);cx.closePath();cx.fillStyle=pinCol(q);cx.fill();cx.lineWidth=q===sel?5:2.5;cx.strokeStyle='#fff';cx.stroke();
   cx.beginPath();cx.arc(x,y-16,5,0,7);cx.fillStyle='#fff';cx.fill();
-  const lab=q.name+' · '+ago(q.t);cx.font='700 13px system-ui';cx.textBaseline='middle';cx.lineWidth=4;cx.strokeStyle='rgba(255,255,255,.95)';cx.strokeText(lab,x+15,y-16);cx.fillStyle='#b23b00';cx.fillText(lab,x+15,y-16);}}
-const _pick0=pick;pick=function(x,y){let b=null,bd=26;if(window._px)for(const q of PINS){const [px1,py1]=window._px(q.lat,q.lon);const d=Math.hypot(px1-x,py1-16-y);if(d<bd){bd=d;b=q;}}if(b){showPin(b);return;}_pick0(x,y);};
+  const lab=q.name+' · '+ago(q.t);cx.font='700 13px system-ui';cx.textBaseline='middle';cx.lineWidth=4;cx.strokeStyle='rgba(255,255,255,.95)';cx.strokeText(lab,x+15,y-16);cx.fillStyle=pinCol(q);cx.fillText(lab,x+15,y-16);}}
+const _pick0=pick;pick=function(x,y){let b=null,bd=26;if(window._px)for(const q of PINS){if(!pinVis(q))continue;const [px1,py1]=window._px(q.lat,q.lon);const d=Math.hypot(px1-x,py1-16-y);if(d<bd){bd=d;b=q;}}if(b){showPin(b);return;}_pick0(x,y);};
 function myName(){let n='';try{n=localStorage.getItem('myname')||''}catch(e){}
   if(!n){n=(prompt('Your name (so your family knows who sent it):','')||'').trim();if(n)try{localStorage.setItem('myname',n)}catch(e){}}return n||'Me';}
 function waitFix(ms){return new Promise(res=>{if(ME)return res(ME);startGPS();const t0=Date.now();const iv=setInterval(()=>{if(ME||Date.now()-t0>ms){clearInterval(iv);res(ME);}},500);});}
@@ -295,59 +296,88 @@ let _ac=null;function chime(kind){try{_ac=_ac||new (window.AudioContext||window.
     g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.22,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+0.32);
     o.connect(g).connect(ac.destination);o.start(t);o.stop(t+0.35);});
   if(navigator.vibrate)navigator.vibrate(kind==='leave'||kind==='close'?[80,60,80]:60);}catch(e){}}
-// ---------- private family group (AES-GCM, key shared in person) ----------
+
+// ---------- private groups (AES-GCM; each group has its own secret code) ----------
 const B32='0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 function b32enc(bytes){let bits=0,val=0,out='';for(const b of bytes){val=(val<<8)|b;bits+=8;while(bits>=5){out+=B32[(val>>>(bits-5))&31];bits-=5;}}if(bits>0)out+=B32[(val<<(5-bits))&31];return out;}
 function b32dec(s){let bits=0,val=0;const out=[];for(const ch of s){const i=B32.indexOf(ch);if(i<0)return null;val=(val<<5)|i;bits+=5;if(bits>=8){out.push((val>>>(bits-8))&255);bits-=8;}}return new Uint8Array(out);}
 const ck=bytes=>{let s=7;for(const b of bytes)s=(s*31+b)%1024;return B32[s>>5]+B32[s&31];};
 function normCode(s){return (s||'').toUpperCase().replace(/[\s-]/g,'').replace(/O/g,'0').replace(/[IL]/g,'1').replace(/U/g,'V');}
-function codeOk(c){if(c.length!==28)return null;const k=b32dec(c.slice(0,26));if(!k||k.length<16)return null;const kk=k.slice(0,16);return ck(kk)===c.slice(26)?kk:null;}
+function codeOk(c){if(!c||c.length!==28)return null;const k=b32dec(c.slice(0,26));if(!k||k.length<16)return null;const kk=k.slice(0,16);return ck(kk)===c.slice(26)?kk:null;}
 const prettyCode=c=>c.match(/.{1,4}/g).join('-');
-let FAM=null;try{FAM=JSON.parse(localStorage.getItem('fam')||'null')}catch(e){}
-const saveFam=()=>{try{FAM?localStorage.setItem('fam',JSON.stringify(FAM)):localStorage.removeItem('fam')}catch(e){};famLabel();};
-function famLabel(){const el=document.getElementById('famn');if(el)el.textContent=FAM?FAM.name:'Not set';const g=document.getElementById('grpbtn');if(g){g.textContent=FAM?'🔒 '+FAM.name:'🔒 Group';g.classList.toggle('on',!!FAM);}}
+const GCOL=['#2b8a3e','#1971c2','#c2255c','#e67700','#7048e8','#0c8599','#5c940d','#a61e4d'];
+
+let GROUPS=[],ACTIVE=null,SHOWG='all';
+try{GROUPS=JSON.parse(localStorage.getItem('groups')||'[]');ACTIVE=localStorage.getItem('activeGroup');SHOWG=localStorage.getItem('showGroups')||'all';
+  const old=JSON.parse(localStorage.getItem('fam')||'null');if(old&&old.code&&!GROUPS.some(g=>g.code===old.code)){GROUPS.push({id:old.code.slice(0,10),name:old.name,code:old.code,owner:old.owner,color:GCOL[0]});ACTIVE=old.code.slice(0,10);}localStorage.removeItem('fam');}catch(e){}
+const gById=id=>GROUPS.find(g=>g.id===id)||null;
+let FAM=gById(ACTIVE)||GROUPS[0]||null;
+function saveGroups(){if(!gById(FAM&&FAM.id))FAM=GROUPS[0]||null;ACTIVE=FAM?FAM.id:null;
+  try{localStorage.setItem('groups',JSON.stringify(GROUPS));ACTIVE?localStorage.setItem('activeGroup',ACTIVE):localStorage.removeItem('activeGroup');localStorage.setItem('showGroups',SHOWG);}catch(e){}famLabel();draw();}
+const saveFam=saveGroups;
+function famLabel(){const el=document.getElementById('famn');if(el)el.textContent=FAM?FAM.name:'Not set';const g=document.getElementById('grpbtn');
+  if(g){g.textContent=FAM?'🔒 '+FAM.name+(GROUPS.length>1?' ▾':''):'🔒 Groups';g.classList.toggle('on',!!FAM);g.style.background=FAM?FAM.color:'';}}
 const b64u=a=>btoa(String.fromCharCode(...a)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 const ub64u=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
-async function famKey(){return crypto.subtle.importKey('raw',codeOk(FAM.code),'AES-GCM',false,['encrypt','decrypt']);}
-async function famEnc(obj){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},await famKey(),new TextEncoder().encode(JSON.stringify(obj))));const a=new Uint8Array(12+ct.length);a.set(iv);a.set(ct,12);return b64u(a);}
-async function famDec(tok){const a=ub64u(tok);const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:a.slice(0,12)},await famKey(),a.slice(12));return JSON.parse(new TextDecoder().decode(pt));}
-async function openSecret(tok,go){if(!FAM){alert('This is a private family location. Join the family group first (Layers → Family Group).');return;}
-  try{const o=await famDec(tok);if(o.close){const nm=FAM.name;FAM=null;saveFam();chime('close');alert('The "'+nm+'" group was closed by the person who made it. It has been removed from this phone.');return;}addPin(+o.la,+o.lo,o.n||'Family',o.t||Date.now(),go!==false);}catch(e){alert('This location is for a different family group — it could not be opened.');}}
-function qrCanvas(text,px){const q=new QRLIB.QRCode(-1,QRLIB.ECL.M);q.addData(text);q.make();const n=q.getModuleCount(),s=Math.floor(px/(n+8));const c=document.createElement('canvas');c.width=c.height=s*(n+8);const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.fillStyle='#000';for(let r=0;r<n;r++)for(let k=0;k<n;k++)if(q.isDark(r,k))g.fillRect((k+4)*s,(r+4)*s,s,s);c.style.width=c.style.height=Math.min(px,260)+'px';return c;}
-function famJoin(name,code){const c=normCode(code);if(!codeOk(c)){alert('That code is not right — check each letter and try again.');return false;}FAM={name:(name||'Family').slice(0,30),code:c,owner:false};saveFam();chime('join');return true;}
-let camStream=null;const stopCam=()=>{if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}};
-async function scanJoin(){const pop=document.getElementById('pop');
-  if(!('BarcodeDetector' in window)){alert('This phone can not scan here — use "Type a code" instead.');return;}
-  try{camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});}catch(e){alert('Camera not allowed — use "Type a code" instead.');return;}
-  pop.innerHTML='<button class="x" aria-label="Close">×</button><div class="pk">Scan the family QR code</div><video id="famcam" playsinline muted style="width:100%;border-radius:8px;background:#000"></video><div style="color:#555;font-size:14px;margin-top:6px">Point at the QR code on the other phone</div>';
-  pop.style.display='block';pop.querySelector('.x').onclick=()=>{stopCam();pop.style.display='none';};
-  const v=document.getElementById('famcam');v.srcObject=camStream;await v.play();const bd=new BarcodeDetector({formats:['qr_code']});
-  const loop=async()=>{if(!camStream)return;try{const r=await bd.detect(v);for(const x of r){const m=(x.rawValue||'').match(/^TEMFAM1\|([^|]*)\|([0-9A-Z]+)$/);if(m){stopCam();if(famJoin(m[1],m[2])){famPanel();}return;}}}catch(e){}requestAnimationFrame(loop);};loop();}
-function famPanel(){const pop=document.getElementById('pop');sel=null;
-  if(FAM){const qr='TEMFAM1|'+FAM.name+'|'+FAM.code;
-    pop.innerHTML='<button class="x" aria-label="Close">×</button><div class="pk">🔒 '+esc(FAM.name)+'</div><div style="font-size:14px;font-weight:700;color:'+(FAM.owner?'#2b8a3e':'#1a3d7c')+'">'+(FAM.owner?'You made this group':FAM.owner===false?'You are a member':'')+'</div><button id="faminv" class="sb2" style="background:#5f3dc4;color:#fff;border:0">📨 Send invite by text</button>'+(FAM.owner!==false?'<button id="famdis" class="sb2" style="color:#c92a2a;border-color:#c92a2a">Close group for everyone</button>':'')+(FAM.owner!==true?'<button id="famleave" class="sb2" style="color:#c92a2a;border-color:#c92a2a">Leave this group</button>':'')+'<div style="color:#555;font-size:13px;margin-top:10px">Group code (to read out loud):</div><div class="bigc" style="font-size:18px;text-align:center">'+prettyCode(FAM.code)+'</div>';
-    pop.querySelector('#faminv').onclick=async()=>{const link=APPURL+'#join='+encodeURIComponent(FAM.name)+'.'+FAM.code;
-      const txt='Join my private family group "'+FAM.name+'" on the Temecula offline map: '+link+' (iPhone: open the map app, tap Group, then "Join a group (paste the invite or type the code)", and paste this whole message.)';
-      if(navigator.share){try{await navigator.share({text:txt});return;}catch(e){if(e&&e.name==='AbortError')return;}}location.href='sms:?&body='+encodeURIComponent(txt);};
-    const lv=pop.querySelector('#famleave');if(lv)lv.onclick=()=>{if(confirm('Leave "'+FAM.name+'"?\nYou will stop seeing its private locations.')){FAM=null;saveFam();chime('leave');famPanel();}};
-    const ds=pop.querySelector('#famdis');if(ds)ds.onclick=async()=>{if(!confirm('Close "'+FAM.name+'" for everyone?\nNext, send the closing message to your group so it is removed from their phones too.'))return;
-      const nm=FAM.name;let tok='';try{tok=await famEnc({close:1,t:Date.now()});}catch(e){}FAM=null;saveFam();chime('close');famPanel();
-      const txt='The "'+nm+'" family group is closed. Tap to remove it from your map app: '+APPURL+'#e='+tok+' (iPhone: open the map app, tap Layers, then "Add a Location Someone Sent You", and paste this message.)';
-      if(navigator.share){try{await navigator.share({text:txt});return;}catch(e){if(e&&e.name==='AbortError')return;}}location.href='sms:?&body='+encodeURIComponent(txt);};}
-  else{pop.innerHTML='<button class="x" aria-label="Close">×</button><div class="pk">🔒 Family Group</div><div style="color:#555;font-size:14px">A private group scrambles the locations you share, so only your family can open them.</div><button id="famnew" class="sb2" style="background:#e8590c;color:#fff;border:0">Start a new family group</button><button id="famtype" class="sb2">Join a group (paste the invite or type the code)</button>';
-    pop.querySelector('#famnew').onclick=()=>{const n=(prompt('Name for your group (for example: Smith Family):','')||'').trim();if(!n)return;const k=crypto.getRandomValues(new Uint8Array(16));FAM={name:n.slice(0,30),code:b32enc(k)+ck(k),owner:true};saveFam();chime('start');famPanel();};
-    pop.querySelector('#famtype').onclick=()=>{const c=prompt('Paste the invite message, or type the family code:','');if(!c)return;
-      const m=c.match(/join=([^.\s]+)\.([0-9A-Za-z]{28})/);if(m){if(famJoin(decodeURIComponent(m[1]),m[2]))famPanel();return;}
-      const g=c.match(/"([^"]{1,30})"/);const n=g?g[1]:((prompt('Group name:','Family')||'Family').trim());if(famJoin(n,c.replace(/^.*?([0-9A-Za-z]{4}(?:[\s-]?[0-9A-Za-z]{4}){6}).*$/s,'$1')))famPanel();};}
-  pop.style.display='block';pop.querySelector('.x').onclick=()=>{stopCam();pop.style.display='none';};if(ly.classList.contains('open'))lb.onclick();}
+const keyOf=g=>crypto.subtle.importKey('raw',codeOk(g.code),'AES-GCM',false,['encrypt','decrypt']);
+async function encFor(g,obj){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},await keyOf(g),new TextEncoder().encode(JSON.stringify(obj))));const a=new Uint8Array(12+ct.length);a.set(iv);a.set(ct,12);return b64u(a);}
+const famEnc=obj=>encFor(FAM,obj);
+async function decAny(tok){const a=ub64u(tok);for(const g of GROUPS){try{const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:a.slice(0,12)},await keyOf(g),a.slice(12));return {g,o:JSON.parse(new TextDecoder().decode(pt))};}catch(e){}}return null;}
+async function openSecret(tok,go){if(!GROUPS.length){alert('This is a private group location. Join the group first (tap the Groups button).');return;}
+  const r=await decAny(tok);if(!r){alert('This location is for a group you are not in — it could not be opened.');return;}
+  if(r.o.close){GROUPS=GROUPS.filter(x=>x!==r.g);saveGroups();chime('close');alert('The "'+r.g.name+'" group was closed by the person who made it. It has been removed from this phone.');return;}
+  addPin(+r.o.la,+r.o.lo,r.o.n||r.g.name,r.o.t||Date.now(),go!==false,r.g.id);}
+function famJoin(name,code){const c=normCode(code);if(!codeOk(c)){alert('That code is not right — check each letter and try again.');return false;}
+  let g=GROUPS.find(x=>x.code===c);if(!g){g={id:c.slice(0,10),name:(name||'Group').slice(0,30),code:c,owner:false,color:GCOL[GROUPS.length%GCOL.length]};GROUPS.push(g);chime('join');}
+  FAM=g;saveGroups();return true;}
+async function sendText(txt){if(navigator.share){try{await navigator.share({text:txt});return;}catch(e){if(e&&e.name==='AbortError')return;}}location.href='sms:?&body='+encodeURIComponent(txt);}
+function openPop(html){const pop=document.getElementById('pop');sel=null;pop.innerHTML='<button class="x" aria-label="Close">×</button>'+html;pop.style.display='block';pop.scrollTop=0;
+  pop.querySelector('.x').onclick=()=>{pop.style.display='none';draw();};if(ly.classList.contains('open'))lb.onclick();return pop;}
+const dot=c=>'<span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:'+c+';vertical-align:-1px;margin-right:6px"></span>';
+const membersOf=g=>PINS.filter(p=>p.g===g.id).sort((a,b)=>b.t-a.t);
+
+// ----- list of all my groups -----
+function famPanel(){
+  const rows=GROUPS.map(g=>{const n=membersOf(g).length;return '<button class="sb2 grow" data-g="'+g.id+'" style="text-align:left;border-left:8px solid '+g.color+'">'+esc(g.name)+
+    '<span style="float:right;font-weight:600;color:#666">'+n+' '+(n===1?'person':'people')+'</span><div style="font-size:12px;font-weight:600;color:'+(g===FAM?g.color:'#888')+'">'+(g===FAM?'✓ You share to this group':(g.owner?'You made this group':'Member'))+'</div></button>';}).join('');
+  const show=GROUPS.length?'<div style="margin-top:10px;font-size:14px;font-weight:700">Show on map:</div><div style="display:flex;gap:6px;margin-top:4px"><button class="sb2 shw" data-s="all" style="margin:0'+(SHOWG==='all'?';background:#333;color:#fff':'')+'">All groups</button>'+(FAM?'<button class="sb2 shw" data-s="'+FAM.id+'" style="margin:0'+(SHOWG===FAM.id?';background:'+FAM.color+';color:#fff':'')+'">Only '+esc(FAM.name)+'</button>':'')+'</div>':'';
+  const pop=openPop('<div class="pk">🔒 Your Groups</div>'+(GROUPS.length?'':'<div style="color:#555;font-size:14px">A private group lets only your family or friends open the locations you share. You can be in more than one group.</div>')+rows+show+
+    '<button id="famnew" class="sb2" style="background:#e8590c;color:#fff;border:0;margin-top:12px">＋ Start a new group</button><button id="famtype" class="sb2">Join a group (paste the invite or type the code)</button>');
+  pop.querySelectorAll('.grow').forEach(b=>b.onclick=()=>groupPanel(gById(b.dataset.g)));
+  pop.querySelectorAll('.shw').forEach(b=>b.onclick=()=>{SHOWG=b.dataset.s;saveGroups();famPanel();});
+  pop.querySelector('#famnew').onclick=()=>{const n=(prompt('Name for your group (for example: Smith Family):','')||'').trim();if(!n)return;const k=crypto.getRandomValues(new Uint8Array(16));const code=b32enc(k)+ck(k);
+    const g={id:code.slice(0,10),name:n.slice(0,30),code,owner:true,color:GCOL[GROUPS.length%GCOL.length]};GROUPS.push(g);FAM=g;saveGroups();chime('start');groupPanel(g);};
+  pop.querySelector('#famtype').onclick=()=>{const c=prompt('Paste the invite message, or type the group code:','');if(!c)return;
+    const m=c.match(/join=([^.\s]+)\.([0-9A-Za-z]{28})/);if(m){if(famJoin(decodeURIComponent(m[1]),m[2]))groupPanel(FAM);return;}
+    const q=c.match(/"([^"]{1,30})"/);const n=q?q[1]:((prompt('Group name:','Family')||'Family').trim());if(famJoin(n,c.replace(/^.*?([0-9A-Za-z]{4}(?:[\s-]?[0-9A-Za-z]{4}){6}).*$/s,'$1')))groupPanel(FAM);};}
+
+// ----- one group: members, share-to, invite, leave/close -----
+function groupPanel(g){if(!g)return famPanel();
+  const mem=membersOf(g).map((p,i)=>{let far='';if(ME){const d=distMi(ME.la,ME.lo,p.lat,p.lon),b=brg(ME.la,ME.lo,p.lat,p.lon);far=d.toFixed(1)+' mi '+cmp(b);}
+    return '<button class="sb2 mem" data-i="'+PINS.indexOf(p)+'" style="text-align:left;margin-top:6px">🧍 '+esc(p.name)+'<span style="float:right;color:#555;font-weight:600">'+far+'</span><div style="font-size:12px;color:#777;font-weight:600">'+ago(p.t)+'</div></button>';}).join('')
+    ||'<div style="color:#777;font-size:14px;margin-top:6px">No one has shared a location in this group yet.</div>';
+  const pop=openPop('<div class="pk">'+dot(g.color)+esc(g.name)+'</div><div style="font-size:14px;font-weight:700;color:'+g.color+'">'+(g.owner?'You made this group':g.owner===false?'You are a member':'')+'</div>'+
+    (g===FAM?'<div style="margin-top:6px;font-size:14px;font-weight:700">✓ Your shared locations go to this group</div>':'<button id="gact" class="sb2" style="background:'+g.color+';color:#fff;border:0">Share my location with this group</button>')+
+    '<div style="margin-top:12px;font-size:14px;font-weight:800">People</div>'+mem+
+    '<button id="faminv" class="sb2" style="background:#5f3dc4;color:#fff;border:0;margin-top:12px">📨 Send invite by text</button>'+
+    (g.owner!==false?'<button id="famdis" class="sb2" style="color:#c92a2a;border-color:#c92a2a">Close group for everyone</button>':'')+(g.owner!==true?'<button id="famleave" class="sb2" style="color:#c92a2a;border-color:#c92a2a">Leave this group</button>':'')+
+    '<div style="color:#555;font-size:13px;margin-top:10px">Group code (to read out loud):</div><div class="bigc" style="font-size:18px;text-align:center">'+prettyCode(g.code)+'</div><button id="gback" class="sb2">← All groups</button>');
+  pop.querySelector('#gback').onclick=famPanel;
+  const ga=pop.querySelector('#gact');if(ga)ga.onclick=()=>{FAM=g;saveGroups();groupPanel(g);};
+  pop.querySelectorAll('.mem').forEach(b=>b.onclick=()=>{const p=PINS[+b.dataset.i];if(!p)return;if(z<14)z=14;setCenter(p.lat,p.lon);follow=false;showPin(p);});
+  pop.querySelector('#faminv').onclick=()=>sendText('Join my private group "'+g.name+'" on the Temecula offline map: '+APPURL+'#join='+encodeURIComponent(g.name)+'.'+g.code+' (iPhone: open the map app, tap Groups, then "Join a group", and paste this whole message.)');
+  const lv=pop.querySelector('#famleave');if(lv)lv.onclick=()=>{if(confirm('Leave "'+g.name+'"?\nYou will stop seeing its private locations.')){GROUPS=GROUPS.filter(x=>x!==g);PINS=PINS.filter(p=>p.g!==g.id);savePins();saveGroups();chime('leave');famPanel();}};
+  const ds=pop.querySelector('#famdis');if(ds)ds.onclick=async()=>{if(!confirm('Close "'+g.name+'" for everyone?\nNext, send the closing message to your group so it is removed from their phones too.'))return;
+    let tok='';try{tok=await encFor(g,{close:1,t:Date.now()});}catch(e){}GROUPS=GROUPS.filter(x=>x!==g);PINS=PINS.filter(p=>p.g!==g.id);savePins();saveGroups();chime('close');famPanel();
+    sendText('The "'+g.name+'" group is closed. Tap to remove it from your map app: '+APPURL+'#e='+tok+' (iPhone: open the map app, tap Layers, then "Add a Location Someone Sent You", and paste this message.)');};}
 document.getElementById('fambtn').onclick=famPanel;document.getElementById('grpbtn').onclick=famPanel;famLabel();
 
 function readJoin(){const m=location.hash.match(/join=([^.]+)\.([0-9A-Za-z]{28})/);if(!m)return false;history.replaceState(null,'',location.pathname);const n=decodeURIComponent(m[1]);
-  if(FAM&&FAM.code===normCode(m[2])){famPanel();return true;}
-  if(confirm('Join the private family group "'+n+'"?'+(FAM?'\n(This replaces your current group "'+FAM.name+'".)':''))){if(famJoin(n,m[2]))famPanel();}return true;}
+  const have=GROUPS.find(g=>g.code===normCode(m[2]));if(have){groupPanel(have);return true;}
+  if(confirm('Join the private group "'+n+'"?')){if(famJoin(n,m[2]))groupPanel(FAM);}return true;}
 window.addEventListener('hashchange',readJoin);setTimeout(readJoin,300);
 
-const APPV=41;
+const APPV=42;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
