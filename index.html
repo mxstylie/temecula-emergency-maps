@@ -160,7 +160,7 @@ body.sheet #scale,body.popopen #scale{display:none!important}
 <label><input type="checkbox" class="dt" data-d="park" checked>Parks &amp; Camps</label>
 <label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
 <label><input type="checkbox" class="dt" data-d="dirt,trail,river" checked>Dirt Roads, Trails &amp; Creeks</label>
-<label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 45 · Nov 24</div>
+<label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 46 · Nov 24</div>
 </div>
 <button id="grpbtn" aria-label="Groups">Groups</button><button id="thmbtn" aria-label="Light or dark map"></button><button id="credbtn" aria-label="Map credits">i</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">Update available. Tap to update</button><button id="share" aria-label="Share my location">Share location</button><button id="me" aria-label="Show where I am">My location</button><button id="laybtn" aria-label="Show layers">Layers</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
@@ -442,12 +442,14 @@ function openPop(html){const pop=document.getElementById('pop');sel=null;pop.inn
 const dot=c=>'<span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:'+c+';vertical-align:-1px;margin-right:6px"></span>';
 const membersOf=g=>PINS.filter(p=>p.g===g.id).sort((a,b)=>b.t-a.t);
 
+const inviteText=g=>sendText('Join my private group "'+g.name+'" on the Temecula offline map: '+APPURL+'#join='+encodeURIComponent(g.name)+'.'+g.code+'\n\nOr open the map app, tap Groups, then Join a group, and type this code: '+prettyCode(g.code));
 // ----- list of all my groups -----
 function famPanel(){
   const rows=GROUPS.map(g=>{const n=membersOf(g).length;return '<button class="row nav grow" data-g="'+g.id+'"><span class="gdot" style="background:'+g.color+'"></span><span class="rt"><b>'+esc(g.name)+'</b><span class="sub">'+(g===FAM?'You share to this group':(g.owner?'You made this group':'Member'))+', '+n+' '+(n===1?'person':'people')+'</span></span></button>';}).join('');
   const show=GROUPS.length>0?'<div class="hd">Show on map</div><div class="seg"><button class="shw'+(SHOWG==='all'?' on':'')+'" data-s="all">All groups</button>'+(FAM?'<button class="shw'+(SHOWG===FAM.id?' on':'')+'" data-s="'+FAM.id+'">Only '+esc(FAM.name)+'</button>':'')+'</div>':'';
   const pop=openPop('<h3>Groups</h3>'+(GROUPS.length?'':'<p class="lead">Only people in your group can open the locations you share. You can be in more than one group.</p>')+rows+show+
-    '<div class="acts"><button id="famnew" class="pri">Start a new group</button><button id="famtype" class="row">Join a group</button></div>');
+    '<div class="acts">'+(FAM?'<button id="faminv2" class="pri">Invite people to '+esc(FAM.name)+'</button>':'')+'<button id="famnew" class="'+(FAM?'row nav':'pri')+'">'+(FAM?'<span class="rt"><b>Start a new group</b></span>':'Start a new group')+'</button><button id="famtype" class="row nav"><span class="rt"><b>Join a group</b><span class="sub">Paste an invite or type a group code</span></span></button></div>');
+  const i2=pop.querySelector('#faminv2');if(i2)i2.onclick=()=>inviteText(FAM);
   pop.querySelectorAll('.grow').forEach(b=>b.onclick=()=>groupPanel(gById(b.dataset.g)));
   pop.querySelectorAll('.shw').forEach(b=>b.onclick=()=>{SHOWG=b.dataset.s;saveGroups();famPanel();});
   pop.querySelector('#famnew').onclick=()=>{const n=(prompt('Name your group (for example: Smith Family)','')||'').trim();if(!n)return;const k=crypto.getRandomValues(new Uint8Array(16));const code=b32enc(k)+ck(k);
@@ -462,15 +464,15 @@ function groupPanel(g){if(!g)return famPanel();
     return '<button class="row nav mem" data-i="'+PINS.indexOf(p)+'"><span class="rt"><b>'+esc(p.name)+'</b><span class="sub">'+ago(p.t)+'</span></span><span class="rv">'+far+'</span></button>';}).join('')
     ||'<p class="lead">No one has shared a location yet. When someone in this group taps Share location, they show up here.</p>';
   const pop=openPop('<button id="gback" class="back">‹ Groups</button><h3><span class="gdot" style="background:'+g.color+'"></span>'+esc(g.name)+'</h3><p class="lead">'+(g.owner?'You made this group.':'You are a member.')+(g===FAM?' Your shared locations go here.':'')+'</p>'+
-    (g===FAM?'':'<button id="gact" class="pri" style="background:'+g.color+'">Share to this group</button>')+
-    '<div class="hd">People</div>'+mem+
-    '<div class="hd">Invite</div><button id="faminv" class="row nav"><span class="rt"><b>Send an invite by text</b><span class="sub">They tap the link to join</span></span></button>'+
-    '<div class="row stat"><span class="rt"><b>Group code</b><span class="sub">Read it out loud to someone who can’t get a text</span></span></div><div class="code">'+prettyCode(g.code)+'</div>'+
+    '<button id="faminv" class="pri">Invite people</button>'+
+    (g===FAM?'':'<button id="gact" class="row nav"><span class="rt"><b>Share to this group</b><span class="sub">Your shared locations will go here</span></span></button>')+
+    '<div class="hd">People</div>'+mem+'<div class="hd">Other ways to invite</div>'+
+    '<div class="row stat"><span class="rt"><b>Group code</b><span class="sub">Read it out loud. They tap Groups, then Join a group, and type it.</span></span></div><div class="code">'+prettyCode(g.code)+'</div>'+
     (g.owner!==false?'<button id="famdis" class="row dng">Close this group for everyone</button>':'')+(g.owner!==true?'<button id="famleave" class="row dng">Leave this group</button>':''));
   pop.querySelector('#gback').onclick=famPanel;
   const ga=pop.querySelector('#gact');if(ga)ga.onclick=()=>{FAM=g;saveGroups();groupPanel(g);};
   pop.querySelectorAll('.mem').forEach(b=>b.onclick=()=>{const p=PINS[+b.dataset.i];if(!p)return;if(z<14)z=14;setCenter(p.lat,p.lon);follow=false;showPin(p);});
-  pop.querySelector('#faminv').onclick=()=>sendText('Join my private group "'+g.name+'" on the Temecula offline map: '+APPURL+'#join='+encodeURIComponent(g.name)+'.'+g.code+' (iPhone: open the map app, tap Groups, then Join a group, and paste this whole message.)');
+  pop.querySelector('#faminv').onclick=()=>inviteText(g);
   const lv=pop.querySelector('#famleave');if(lv)lv.onclick=()=>{if(confirm('Leave "'+g.name+'"?\nYou will stop seeing its private locations.')){GROUPS=GROUPS.filter(x=>x!==g);PINS=PINS.filter(p=>p.g!==g.id);savePins();saveGroups();chime('leave');famPanel();}};
   const ds=pop.querySelector('#famdis');if(ds)ds.onclick=async()=>{if(!confirm('Close "'+g.name+'" for everyone?\nNext, send the closing message to your group so it is removed from their phones too.'))return;
     let tok='';try{tok=await encFor(g,{close:1,t:Date.now()});}catch(e){}GROUPS=GROUPS.filter(x=>x!==g);PINS=PINS.filter(p=>p.g!==g.id);savePins();saveGroups();chime('close');famPanel();
@@ -482,7 +484,7 @@ function readJoin(){const m=location.hash.match(/join=([^.]+)\.([0-9A-Za-z]{28})
   if(confirm('Join the private group "'+n+'"?')){if(famJoin(n,m[2]))groupPanel(FAM);}return true;}
 window.addEventListener('hashchange',readJoin);setTimeout(readJoin,300);
 
-const APPV=45;
+const APPV=46;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
