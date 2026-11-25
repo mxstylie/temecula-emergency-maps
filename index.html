@@ -66,7 +66,7 @@ html,body{margin:0;height:100%;overflow:hidden;font:14px/1.4 system-ui,-apple-sy
 <label><input type="checkbox" class="dt" data-d="park" checked>Parks &amp; Camps</label>
 <label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
 <label><input type="checkbox" class="dt" data-d="dirt,trail,river" checked>Dirt Roads, Trails &amp; Creeks</label>
-<label class="svl"><input type="checkbox" id="saver">Battery Saver (dark map, GPS only when you tap)</label><button id="fambtn" class="sb2">Family Group: <span id="famn"></span></button><button id="addpin" class="sb2">Add a Location Someone Sent You</button><button id="setname" class="sb2">My Name: <span id="myn"></span></button><div class="ver">App Version 31 · Nov 24</div>
+<label class="svl"><input type="checkbox" id="saver">Battery Saver (dark map, GPS only when you tap)</label><button id="fambtn" class="sb2">Family Group: <span id="famn"></span></button><button id="addpin" class="sb2">Add a Location Someone Sent You</button><button id="setname" class="sb2">My Name: <span id="myn"></span></button><div class="ver">App Version 32 · Nov 24</div>
 </div>
 <button id="grpbtn" aria-label="Family group">🔒 Group</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">⬆️ Update needed — tap here</button><button id="share" aria-label="Share my location">📤 Share my location</button><button id="me" aria-label="Show where I am">◎ Where am I</button><button id="laybtn" aria-label="Show layers">☰ Layers</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
@@ -1538,9 +1538,9 @@ async function famKey(){return crypto.subtle.importKey('raw',codeOk(FAM.code),'A
 async function famEnc(obj){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},await famKey(),new TextEncoder().encode(JSON.stringify(obj))));const a=new Uint8Array(12+ct.length);a.set(iv);a.set(ct,12);return b64u(a);}
 async function famDec(tok){const a=ub64u(tok);const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:a.slice(0,12)},await famKey(),a.slice(12));return JSON.parse(new TextDecoder().decode(pt));}
 async function openSecret(tok,go){if(!FAM){alert('This is a private family location. Join the family group first (Layers → Family Group).');return;}
-  try{const o=await famDec(tok);addPin(+o.la,+o.lo,o.n||'Family',o.t||Date.now(),go!==false);}catch(e){alert('This location is for a different family group — it could not be opened.');}}
+  try{const o=await famDec(tok);if(o.close){const nm=FAM.name;FAM=null;saveFam();alert('The "'+nm+'" group was closed by the person who made it. It has been removed from this phone.');return;}addPin(+o.la,+o.lo,o.n||'Family',o.t||Date.now(),go!==false);}catch(e){alert('This location is for a different family group — it could not be opened.');}}
 function qrCanvas(text,px){const q=new QRLIB.QRCode(-1,QRLIB.ECL.M);q.addData(text);q.make();const n=q.getModuleCount(),s=Math.floor(px/(n+8));const c=document.createElement('canvas');c.width=c.height=s*(n+8);const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.fillStyle='#000';for(let r=0;r<n;r++)for(let k=0;k<n;k++)if(q.isDark(r,k))g.fillRect((k+4)*s,(r+4)*s,s,s);c.style.width=c.style.height=Math.min(px,260)+'px';return c;}
-function famJoin(name,code){const c=normCode(code);if(!codeOk(c)){alert('That code is not right — check each letter and try again.');return false;}FAM={name:(name||'Family').slice(0,30),code:c};saveFam();return true;}
+function famJoin(name,code){const c=normCode(code);if(!codeOk(c)){alert('That code is not right — check each letter and try again.');return false;}FAM={name:(name||'Family').slice(0,30),code:c,owner:false};saveFam();return true;}
 let camStream=null;const stopCam=()=>{if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}};
 async function scanJoin(){const pop=document.getElementById('pop');
   if(!('BarcodeDetector' in window)){alert('This phone can not scan here — use "Type a code" instead.');return;}
@@ -1551,14 +1551,18 @@ async function scanJoin(){const pop=document.getElementById('pop');
   const loop=async()=>{if(!camStream)return;try{const r=await bd.detect(v);for(const x of r){const m=(x.rawValue||'').match(/^TEMFAM1\|([^|]*)\|([0-9A-Z]+)$/);if(m){stopCam();if(famJoin(m[1],m[2])){famPanel();}return;}}}catch(e){}requestAnimationFrame(loop);};loop();}
 function famPanel(){const pop=document.getElementById('pop');sel=null;
   if(FAM){const qr='TEMFAM1|'+FAM.name+'|'+FAM.code;
-    pop.innerHTML='<button class="x" aria-label="Close">×</button><div class="pk">🔒 '+esc(FAM.name)+'</div><div style="color:#555;font-size:14px">Your shared locations are scrambled so only this group can open them. To add someone, let them scan this code <b>in person</b>, or read them the code below.</div><div id="famqr" style="text-align:center;margin:8px 0"></div><div class="bigc" style="font-size:20px;text-align:center">'+prettyCode(FAM.code)+'</div><button id="faminv" class="sb2" style="background:#5f3dc4;color:#fff;border:0">📨 Send invite by text</button><button id="famleave" class="sb2">Leave this group</button>';
-    pop.querySelector('#famqr').appendChild(qrCanvas(qr,300));
+    pop.innerHTML='<button class="x" aria-label="Close">×</button><div class="pk">🔒 '+esc(FAM.name)+'</div><div style="font-size:14px;font-weight:700;color:'+(FAM.owner?'#2b8a3e':'#1a3d7c')+'">'+(FAM.owner?'You made this group':FAM.owner===false?'You are a member':'')+'</div><button id="faminv" class="sb2" style="background:#5f3dc4;color:#fff;border:0">📨 Send invite by text</button>'+(FAM.owner!==false?'<button id="famdis" class="sb2" style="color:#c92a2a;border-color:#c92a2a">Close group for everyone</button>':'')+(FAM.owner!==true?'<button id="famleave" class="sb2" style="color:#c92a2a;border-color:#c92a2a">Leave this group</button>':'')+'<div style="color:#555;font-size:13px;margin-top:10px">Or let family scan this <b>in person</b>, or read them the code:</div><div id="famqr" style="text-align:center;margin:6px 0"></div><div class="bigc" style="font-size:18px;text-align:center">'+prettyCode(FAM.code)+'</div>';
+    pop.querySelector('#famqr').appendChild(qrCanvas(qr,200));
     pop.querySelector('#faminv').onclick=async()=>{const link=APPURL+'#join='+encodeURIComponent(FAM.name)+'.'+FAM.code;
       const txt='Join my private family group "'+FAM.name+'" on the Temecula offline map: '+link+' (iPhone: open the map app, tap Group, then "Join: paste or type an invite", and paste this whole message.)';
       if(navigator.share){try{await navigator.share({text:txt});return;}catch(e){if(e&&e.name==='AbortError')return;}}location.href='sms:?&body='+encodeURIComponent(txt);};
-    pop.querySelector('#famleave').onclick=()=>{if(confirm('Leave the "'+FAM.name+'" group? You will not be able to open its private locations.')){FAM=null;saveFam();famPanel();}};}
+    const lv=pop.querySelector('#famleave');if(lv)lv.onclick=()=>{if(confirm('Leave "'+FAM.name+'"?\nYou will stop seeing its private locations.')){FAM=null;saveFam();famPanel();}};
+    const ds=pop.querySelector('#famdis');if(ds)ds.onclick=async()=>{if(!confirm('Close "'+FAM.name+'" for everyone?\nNext, send the closing message to your group so it is removed from their phones too.'))return;
+      const nm=FAM.name;let tok='';try{tok=await famEnc({close:1,t:Date.now()});}catch(e){}FAM=null;saveFam();famPanel();
+      const txt='The "'+nm+'" family group is closed. Tap to remove it from your map app: '+APPURL+'#e='+tok+' (iPhone: open the map app, tap Layers, then "Add a Location Someone Sent You", and paste this message.)';
+      if(navigator.share){try{await navigator.share({text:txt});return;}catch(e){if(e&&e.name==='AbortError')return;}}location.href='sms:?&body='+encodeURIComponent(txt);};}
   else{pop.innerHTML='<button class="x" aria-label="Close">×</button><div class="pk">🔒 Family Group</div><div style="color:#555;font-size:14px">A private group scrambles the locations you share, so only your family can open them.</div><button id="famnew" class="sb2" style="background:#e8590c;color:#fff;border:0">Start a new family group</button><button id="famscan" class="sb2">Join: scan a family QR code</button><button id="famtype" class="sb2">Join: paste or type an invite</button>';
-    pop.querySelector('#famnew').onclick=()=>{const n=(prompt('Name for your group (for example: Smith Family):','')||'').trim();if(!n)return;const k=crypto.getRandomValues(new Uint8Array(16));FAM={name:n.slice(0,30),code:b32enc(k)+ck(k)};saveFam();famPanel();};
+    pop.querySelector('#famnew').onclick=()=>{const n=(prompt('Name for your group (for example: Smith Family):','')||'').trim();if(!n)return;const k=crypto.getRandomValues(new Uint8Array(16));FAM={name:n.slice(0,30),code:b32enc(k)+ck(k),owner:true};saveFam();famPanel();};
     pop.querySelector('#famscan').onclick=scanJoin;
     pop.querySelector('#famtype').onclick=()=>{const c=prompt('Paste the invite message, or type the family code:','');if(!c)return;
       const m=c.match(/join=([^.\s]+)\.([0-9A-Za-z]{28})/);if(m){if(famJoin(decodeURIComponent(m[1]),m[2]))famPanel();return;}
@@ -1571,7 +1575,7 @@ function readJoin(){const m=location.hash.match(/join=([^.]+)\.([0-9A-Za-z]{28})
   if(confirm('Join the private family group "'+n+'"?'+(FAM?'\n(This replaces your current group "'+FAM.name+'".)':''))){if(famJoin(n,m[2]))famPanel();}return true;}
 window.addEventListener('hashchange',readJoin);setTimeout(readJoin,300);
 
-const APPV=31;
+const APPV=32;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
