@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Temecula Emergency Maps</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1a73e8"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+<title>Offline Emergency SoCal</title><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Offline Emergency SoCal"><meta name="application-name" content="Offline Emergency SoCal"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#2f6b3f"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
 html,body{margin:0;height:100%;overflow:hidden;font:14px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;background:#e8e6e1}
 #c{position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:none}
@@ -171,7 +171,7 @@ details.more[open] summary::after{content:" ▴"}
 @media (max-height:520px){:root{--tb:58px}}
 </style></head><body>
 <canvas id="c"></canvas>
-<div id="hdr" class="box"><b id="ttl">Temecula offline map</b><ul class="how"><li><span class="k">Drag</span> the map to move around</li><li><span class="k">Scroll</span> or <span class="k">+ / −</span> buttons (bottom right) to zoom in and out</li><li><span class="k">Tap a place</span> (🏥🚒🚓🏫…) to see what it is and how far away</li><li><span class="k">◎ Where am I</span> shows you on the map (GPS works with no cell service)</li><li><span class="k">⌂</span> button jumps back to Temecula</li></ul><span class="src">Works with no internet. Map data: OpenStreetMap.</span></div>
+<div id="hdr" class="box"><b id="ttl">Offline Emergency SoCal</b><ul class="how"><li><span class="k">Drag</span> the map to move around</li><li><span class="k">Scroll</span> or <span class="k">+ / −</span> buttons (bottom right) to zoom in and out</li><li><span class="k">Tap a place</span> (🏥🚒🚓🏫…) to see what it is and how far away</li><li><span class="k">◎ Where am I</span> shows you on the map (GPS works with no cell service)</li><li><span class="k">⌂</span> button jumps back to Temecula</li></ul><span class="src">Works with no internet. Map data: OpenStreetMap.</span></div>
 <div id="lay" class="box">
 <div id="layl"></div><label><input type="checkbox" id="lbl" checked>Show names (zoom in)</label>
 <div class="dh">Show on the map</div>
@@ -186,7 +186,7 @@ details.more[open] summary::after{content:" ▴"}
 <label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
 <label><input type="checkbox" class="dt" data-d="dirt,trail,river" checked>Dirt Roads, Trails &amp; Creeks</label>
 <label><input type="checkbox" id="rng" checked>Mile Rings</label>
-</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 47 · Nov 24</div>
+</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 48 · Nov 25</div>
 </div>
 <button id="grpbtn" aria-label="Groups">Groups</button><button id="thmbtn" aria-label="Light or dark map"></button><button id="credbtn" aria-label="Map credits">i</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">Update available. Tap to update</button><button id="share" aria-label="Share my location">Share location</button><button id="me" aria-label="Show where I am">My location</button><button id="laybtn" aria-label="Show layers">Layers</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
@@ -397,8 +397,8 @@ async function shareMe(){const n=myName();gpsMsg('📡 Getting your GPS location
   if(!m){gpsMsg('Could not get a GPS fix yet — go outside and try again','bad');return;}
   const ft=Math.round(m.acc*3.28084),la=m.la.toFixed(5),lo=m.lo.toFixed(5),tm=new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
   const link=APPURL+'#p='+la+','+lo+','+encodeURIComponent(n)+','+Math.round(Date.now()/1000);
-  let txt=n+' is here: '+la+', '+lo+' (±'+ft+' ft) at '+tm+'. Tap to see it on the Temecula offline map: '+link;
-  if(FAM){try{const tok=await famEnc({la:+la,lo:+lo,n,t:Date.now(),a:ft});txt='🔒 Private location for the "'+FAM.name+'" group. Open it in the Temecula map app (iPhone: copy this message, then Layers → Add a Location Someone Sent You): '+APPURL+'#e='+tok;}catch(e){}}
+  let txt=n+' is here: '+la+', '+lo+' (±'+ft+' ft) at '+tm+'. Tap to see it on the Offline Emergency SoCal map: '+link;
+  if(FAM){try{const tok=await famEnc({la:+la,lo:+lo,n,t:Date.now(),a:ft});txt='🔒 Private location for the "'+FAM.name+'" group. Open it in the Offline Emergency SoCal app (iPhone: copy this message, then Layers → Add a Location Someone Sent You): '+APPURL+'#e='+tok;}catch(e){}}
   const pop=document.getElementById('pop');sel=null;
   pop.innerHTML='<button class="x" aria-label="Close">×</button><h3>Your location</h3><div class="code big">'+la+'<br>'+lo+'</div><p class="lead">Accurate to about '+ft+' feet, at '+tm+'. No signal? Read these numbers to someone over a walkie-talkie.</p>'+(FAM?'<p class="lead">Your text goes privately to <b>'+esc(FAM.name)+'</b>.</p>':'')+'<div class="acts"><button id="sendtxt" class="pri">Send as a text message</button></div>';
   pop.style.display='block';pop.querySelector('.x').onclick=()=>{pop.style.display='none';};
@@ -410,7 +410,7 @@ document.getElementById('addpin').onclick=()=>{const s=prompt('Paste a shared lo
   if(ly.classList.contains('open'))lb.onclick();addPin(+m[1],+m[2],nm,m[4]?+m[4]*1000:Date.now(),true);};
 setInterval(()=>{if(PINS.length)draw();},60000);
 function showIntro(){const pop=document.getElementById('pop');sel=null;if(ly.classList.contains('open'))lb.onclick();
-  pop.innerHTML='<h3>Welcome</h3><p class="lead big">This map works without internet or cell service.</p>'+
+  pop.innerHTML='<h3>Welcome to Offline Emergency SoCal</h3><p class="lead big">This map works without internet or cell service.</p>'+
    '<div class="step"><span class="si" style="color:var(--blue)">'+ICON.me+'</span><div><b>Locate</b><br>Shows where you are on the map.</div></div>'+
    '<div class="step"><span class="si" style="color:var(--acc)">'+ICON.share+'</span><div><b>Share</b><br>Sends your location to family by text, or shows numbers you can read out loud.</div></div>'+
    '<div class="step"><span class="si">'+ICON.grp+'</span><div><b>Groups</b><br>Make a private group so only your family can open your location.</div></div>'+
@@ -479,7 +479,7 @@ function openPop(html){const pop=document.getElementById('pop');sel=null;pop.inn
 const dot=c=>'<span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:'+c+';vertical-align:-1px;margin-right:6px"></span>';
 const membersOf=g=>PINS.filter(p=>p.g===g.id).sort((a,b)=>b.t-a.t);
 
-const inviteText=g=>sendText('Join my private group "'+g.name+'" on the Temecula offline map: '+APPURL+'#join='+encodeURIComponent(g.name)+'.'+g.code+'\n\nOr open the map app, tap Groups, then Join a group, and type this code: '+prettyCode(g.code));
+const inviteText=g=>sendText('Join my private group "'+g.name+'" on the Offline Emergency SoCal map: '+APPURL+'#join='+encodeURIComponent(g.name)+'.'+g.code+'\n\nOr open the Offline Emergency SoCal app, tap Groups, then Join a group, and type this code: '+prettyCode(g.code));
 // ----- list of all my groups -----
 function famPanel(){
   const rows=GROUPS.map(g=>{const n=membersOf(g).length;return '<button class="row nav grow" data-g="'+g.id+'"><span class="gdot" style="background:'+g.color+'"></span><span class="rt"><b>'+esc(g.name)+'</b><span class="sub">'+(g===FAM?'You share to this group':(g.owner?'You made this group':'Member'))+', '+n+' '+(n===1?'person':'people')+'</span></span></button>';}).join('');
@@ -513,7 +513,7 @@ function groupPanel(g){if(!g)return famPanel();
   const lv=pop.querySelector('#famleave');if(lv)lv.onclick=()=>{if(confirm('Leave "'+g.name+'"?\nYou will stop seeing its private locations.')){GROUPS=GROUPS.filter(x=>x!==g);PINS=PINS.filter(p=>p.g!==g.id);savePins();saveGroups();chime('leave');famPanel();}};
   const ds=pop.querySelector('#famdis');if(ds)ds.onclick=async()=>{if(!confirm('Close "'+g.name+'" for everyone?\nNext, send the closing message to your group so it is removed from their phones too.'))return;
     let tok='';try{tok=await encFor(g,{close:1,t:Date.now()});}catch(e){}GROUPS=GROUPS.filter(x=>x!==g);PINS=PINS.filter(p=>p.g!==g.id);savePins();saveGroups();chime('close');famPanel();
-    sendText('The "'+g.name+'" group is closed. Tap to remove it from your map app: '+APPURL+'#e='+tok+' (iPhone: open the map app, tap Layers, then Add a location someone sent you, and paste this message.)');};}
+    sendText('The "'+g.name+'" group is closed. Tap to remove it from your Offline Emergency SoCal app: '+APPURL+'#e='+tok+' (iPhone: open the Offline Emergency SoCal app, tap Layers, then Add a location someone sent you, and paste this message.)');};}
 document.getElementById('fambtn').onclick=famPanel;document.getElementById('grpbtn').onclick=famPanel;setTimeout(famLabel,0);
 
 function readJoin(){const m=location.hash.match(/join=([^.]+)\.([0-9A-Za-z]{28})/);if(!m)return false;history.replaceState(null,'',location.pathname);const n=decodeURIComponent(m[1]);
@@ -521,12 +521,12 @@ function readJoin(){const m=location.hash.match(/join=([^.]+)\.([0-9A-Za-z]{28})
   if(confirm('Join the private group "'+n+'"?')){if(famJoin(n,m[2]))groupPanel(FAM);}return true;}
 window.addEventListener('hashchange',readJoin);setTimeout(readJoin,300);
 
-const APPV=47;
+const APPV=48;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
   try{const pg=await fetch('./index.html?c='+Date.now(),{cache:'no-store'});if(!pg.ok)throw 0;const body=await pg.blob();
-   const c=await caches.open('tem-maps');const h={headers:{'Content-Type':'text/html'}};await c.put('index.html',new Response(body,h));await c.put('./',new Response(body,h));
+   const c=await caches.open('tem-maps');const h={headers:{'Content-Type':'text/html'}};await c.put('index.html',new Response(body,h));await c.put('./',new Response(body,h));try{const mf=await fetch('manifest.webmanifest?c='+Date.now(),{cache:'no-store'});if(mf.ok)await c.put('manifest.webmanifest',mf);}catch(e){}
    ubar.textContent='✅ Updated! Restarting…';setTimeout(()=>location.reload(),700);}
   catch(e){ubar.textContent='⚠️ No internet — tap to try again';}};
  chk();setInterval(chk,30*60000);window.addEventListener('online',chk);}
