@@ -237,7 +237,7 @@ body.noui #zpm,body.sheet #zpm,body.popopen #zpm{display:none!important}
 <label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
 <label><input type="checkbox" class="dt" data-d="dirt,trail,river" checked>Dirt Roads, Trails &amp; Creeks</label>
 <label><input type="checkbox" id="rng" checked>Mile Rings</label>
-</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 63 · Nov 26</div>
+</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 64 · Nov 26</div>
 </div>
 <button id="grpbtn" aria-label="Groups">Groups</button><button id="thmbtn" aria-label="Light or dark map"></button><button id="credbtn" aria-label="Map credits">i</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">Update available. Tap to update</button><button id="share" aria-label="Share my location">Share location</button><button id="me" aria-label="Show where I am">My location</button><button id="laybtn" aria-label="Show layers">Layers</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
@@ -688,15 +688,28 @@ function wavOf(pcm,sr){const n=pcm.length,u=new DataView(new ArrayBuffer(44+n*2)
 async function saveSoundFile(p,name){const sr=44100,one=sndRender(p,sr),gap=sr;const pcm=new Float32Array(one.length*2+gap);pcm.set(one);pcm.set(one,one.length+gap);
   const fn=('location-'+(name||'me')+'-'+new Date().toTimeString().slice(0,5).replace(':','')+'.wav').replace(/[^\w.-]/g,'_');const blob=wavOf(pcm,sr);
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);}
+
+// ---------- send my location through the phone's share menu (Quick Share / AirDrop work without cell service) ----------
+async function sendLocShare(){const n=myName();const pop=openPop('<h3>Send my location</h3><p class="lead">Finding your location…</p>');
+  const m=await waitFix(90000);if(!m){openPop('<h3>Send my location</h3><p class="lead">No GPS signal yet. Go outside and try again.</p>');return;}
+  const ft=Math.round(m.acc*3.28084),la=m.la.toFixed(5),lo=m.lo.toFixed(5),tm=new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+  let txt=n+' is here: '+la+', '+lo+' (±'+ft+' ft) at '+tm+'. Tap to see it on the Offline Emergency SoCal map: '+APPURL+'#p='+la+','+lo+','+encodeURIComponent(n)+','+Math.round(Date.now()/1000);
+  if(FAM){try{const tok=await famEnc({la:+la,lo:+lo,n,t:Date.now(),a:ft});txt='Private location for the "'+FAM.name+'" group. Open it in the Offline Emergency SoCal app: '+APPURL+'#e='+tok;}catch(e){}}
+  const done=openPop('<h3>Send my location</h3><div class="code big">'+la+'<br>'+lo+'</div><p class="lead">Pick <b>Quick Share</b> (Android) or <b>AirDrop</b> (iPhone) to send it to a phone next to you. Those work with no cell service. Text and email need service.</p>'+
+    (FAM?'<p class="lead">Private to <b>'+esc(FAM.name)+'</b>. Only your group can open it.</p>':'')+'<button id="lsgo" class="pri">Open share menu</button><button id="lscopy" class="row nav"><span class="rt"><b>Copy instead</b><span class="sub">Paste it into any app</span></span></button>');
+  const go=async()=>{if(navigator.share){try{await navigator.share({text:txt});return;}catch(e){if(e&&e.name==='AbortError')return;}}copy();};
+  const copy=async()=>{try{await navigator.clipboard.writeText(txt);done.querySelector('#lscopy .sub').textContent='Copied. Paste it into any app.';}catch(e){done.querySelector('#lscopy .sub').textContent='Could not copy on this phone.';}};
+  done.querySelector('#lsgo').onclick=go;done.querySelector('#lscopy').onclick=copy;go();}
 function shareSheet(){const nn=INBOX.filter(q=>!q.seen).length,last=INBOX[INBOX.length-1];
   const pop=openPop('<h3>Share</h3><p class="lead">No cell service needed for sound. Hold the phones close together, or hold your phone up to a walkie-talkie.</p>'+
    '<button id="sndsend" class="pri">Send my location by sound</button>'+
+   '<button id="lsend" class="row nav"><span class="rt"><b>Send my location</b><span class="sub">Quick Share or AirDrop to a phone nearby, or text</span></span></button>'+
    '<button id="sndlisten" class="row nav"><span class="rt"><b>Listen for a location</b><span class="sub">Get someone else’s location by sound</span></span></button>'+
    '<button id="sndinbox" class="row nav"><span class="rt"><b>'+(nn?'<i class="newdot"></i>':'')+'Locations you got'+(INBOX.length?' ('+INBOX.length+')':'')+'</b><span class="sub">'+(last?esc(last.n)+' sent theirs at '+tmS(last.t):'Saved here so you can look later')+'</span></span></button>'+
    '<button id="sndfile" class="row nav"><span class="rt"><b>Open a recording</b><span class="sub">Find a location in a voice memo or sound file</span></span></button>'+
    '<button id="shnum" class="row nav"><span class="rt"><b>Show my location as numbers</b><span class="sub">To read out loud over a walkie-talkie</span></span></button>'+
    (FAM?'<p class="lead">Private to <b>'+esc(FAM.name)+'</b>. Only your group can open it.</p>':''));
-  pop.querySelector('#sndsend').onclick=sndSendMine;pop.querySelector('#sndlisten').onclick=sndListen;pop.querySelector('#sndinbox').onclick=inboxSheet;pop.querySelector('#sndfile').onclick=pickRecording;
+  pop.querySelector('#sndsend').onclick=sndSendMine;pop.querySelector('#lsend').onclick=sendLocShare;pop.querySelector('#sndlisten').onclick=sndListen;pop.querySelector('#sndinbox').onclick=inboxSheet;pop.querySelector('#sndfile').onclick=pickRecording;
   pop.querySelector('#shnum').onclick=()=>shareMe();}
 async function sndSendMine(){const n=myName();const pop=openPop('<h3>Send by sound</h3><p class="lead">Finding your location…</p>');
   const m=await waitFix(90000);if(!m){openPop('<h3>Send by sound</h3><p class="lead">No GPS signal yet. Go outside and try again.</p>');return;}
@@ -902,7 +915,7 @@ function addMapSheet(){const pop=openPop('<h3>Download a new map</h3>'+
   b.onclick=()=>{if(ly.classList.contains('open'))lb.onclick();mapsSheet();};const sv=document.querySelector('#lay label.svl');if(sv)sv.parentNode.insertBefore(b,sv);else help.parentNode.insertBefore(b,help);}}
 loadMaps();
 
-const APPV=63;
+const APPV=64;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
