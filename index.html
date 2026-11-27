@@ -237,9 +237,9 @@ body.noui #zpm,body.sheet #zpm,body.popopen #zpm{display:none!important}
 <label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
 <label><input type="checkbox" class="dt" data-d="dirt,trail,river" checked>Dirt Roads, Trails &amp; Creeks</label>
 <label><input type="checkbox" id="rng" checked>Mile Rings</label>
-</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 65 · Nov 26</div>
+</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 66 · Nov 26</div>
 </div>
-<button id="grpbtn" aria-label="Groups">Groups</button><button id="thmbtn" aria-label="Light or dark map"></button><button id="credbtn" aria-label="Map credits">i</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">Update available. Tap to update</button><button id="share" aria-label="Share my location">Share location</button><button id="me" aria-label="Show where I am">My location</button><button id="laybtn" aria-label="Show layers">Layers</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
+<button id="grpbtn" aria-label="Groups">Groups</button><button id="thmbtn" aria-label="Light or dark map"></button><button id="credbtn" aria-label="Map credits">i</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">Update available. Tap to update</button><button id="share" aria-label="Share my location">Share location</button><button id="me" aria-label="Show where I am">My location</button><button id="laybtn" aria-label="Open menu">Menu</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
 <div id="attr">Map data © OpenStreetMap contributors (ODbL), OpenFreeMap · terrain: Copernicus DEM via Open-Meteo · everything stored in this file</div>
 <script>
@@ -416,7 +416,7 @@ cv.addEventListener('pointerdown',()=>{follow=false;if(ly.classList.contains('op
 
 const ICON={share:'<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>',
  me:'<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>',
- lay:'<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M12 3 2 8l10 5 10-5-10-5z"/><path d="m2 13 10 5 10-5"/></svg>',
+ lay:'<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>',
  grp:'<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M16 14c2.8 0 5 2.2 5 5"/></svg>',
  sun:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
  moon:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>'};
@@ -450,7 +450,7 @@ async function shareMe(){const n=myName();gpsMsg('📡 Getting your GPS location
   const ft=Math.round(m.acc*3.28084),la=m.la.toFixed(5),lo=m.lo.toFixed(5),tm=new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
   const link=APPURL+'#p='+la+','+lo+','+encodeURIComponent(n)+','+Math.round(Date.now()/1000);
   let txt=n+' is here: '+la+', '+lo+' (±'+ft+' ft) at '+tm+'. Tap to see it on the Offline Emergency SoCal map: '+link;
-  if(FAM){try{const tok=await famEnc({la:+la,lo:+lo,n,t:Date.now(),a:ft});txt='🔒 Private location for the "'+FAM.name+'" group. Open it in the Offline Emergency SoCal app (iPhone: copy this message, then Layers → Add a Location Someone Sent You): '+APPURL+'#e='+tok;}catch(e){}}
+  if(FAM){try{const tok=await famEnc({la:+la,lo:+lo,n,t:Date.now(),a:ft});txt='🔒 Private location for the "'+FAM.name+'" group. Open it in the Offline Emergency SoCal app (iPhone: copy this message, then Menu → Add a location someone sent you): '+APPURL+'#e='+tok;}catch(e){}}
   const pop=document.getElementById('pop');sel=null;
   pop.innerHTML='<button class="x" aria-label="Close">×</button><h3>Your location</h3><div class="code big">'+la+'<br>'+lo+'</div><p class="lead">Accurate to about '+ft+' feet, at '+tm+'. No signal? Read these numbers to someone over a walkie-talkie.</p>';
   pop.style.display='block';pop.querySelector('.x').onclick=()=>{pop.style.display='none';};
@@ -466,7 +466,7 @@ function showIntro(){const pop=document.getElementById('pop');sel=null;if(ly.cla
    '<div class="step"><span class="si" style="color:var(--blue)">'+ICON.me+'</span><div><b>Locate</b><br>Shows where you are on the map.</div></div>'+
    '<div class="step"><span class="si" style="color:var(--acc)">'+ICON.share+'</span><div><b>Share</b><br>Sends your location to a phone nearby. Quick Share and AirDrop work with no cell service.</div></div>'+
    '<div class="step"><span class="si">'+ICON.grp+'</span><div><b>Groups</b><br>Make a private group so only your family can open your location.</div></div>'+
-   '<div class="step"><span class="si">'+ICON.lay+'</span><div><b>Layers</b><br>Choose what shows on the map, like hospitals or stores.</div></div>'+
+   '<div class="step"><span class="si">'+ICON.lay+'</span><div><b>Menu</b><br>Choose what shows on the map, download maps, and change settings.</div></div>'+
    '<p class="lead">Tap any icon on the map to see what it is and how far away it is.</p><button id="introok" class="pri">Got it</button>';
   pop.style.display='block';pop.scrollTop=0;document.getElementById('introok').onclick=()=>{try{localStorage.setItem('seenIntro','1')}catch(e){}pop.style.display='none';draw();};}
 document.getElementById('helpbtn').onclick=showIntro;
@@ -474,7 +474,7 @@ try{if(!localStorage.getItem('seenIntro'))setTimeout(showIntro,600);}catch(e){}
 
 {const tb=document.createElement('nav');tb.id='tabbar';document.body.appendChild(tb);
  const put=(id,ic,lab)=>{const b=document.getElementById(id);b.innerHTML='<span class="bdg">'+ic+'</span><span>'+lab+'</span>';tb.appendChild(b);};
- put('laybtn',ICON.lay,'Layers');put('grpbtn',ICON.grp,'Groups');put('share',ICON.share,'Share');put('me',ICON.me,'Locate');
+ put('laybtn',ICON.lay,'Menu');put('grpbtn',ICON.grp,'Groups');put('share',ICON.share,'Share');put('me',ICON.me,'Locate');
  const gc=document.createElement('button');gc.id='gchip';gc.setAttribute('aria-label','Your group');document.body.appendChild(gc);gc.onclick=()=>famPanel();
  new MutationObserver(()=>{document.getElementById('laybtn').classList.toggle('on',ly.classList.contains('open'));}).observe(ly,{attributes:true,attributeFilter:['class']});}
 {const tb=document.getElementById('thmbtn');const lab=()=>{tb.innerHTML=DARK?ICON.sun:ICON.moon;tb.setAttribute('aria-label',DARK?'Switch to light map':'Switch to dark map');};lab();tb.onclick=()=>{DARK=!DARK;document.body.classList.toggle('dark',DARK);try{localStorage.setItem('theme',DARK?'dark':'light')}catch(e){}lab();};}
@@ -917,7 +917,7 @@ function addMapSheet(){const pop=openPop('<h3>Download a new map</h3>'+
   b.onclick=()=>{if(ly.classList.contains('open'))lb.onclick();mapsSheet();};const sv=document.querySelector('#lay label.svl');if(sv)sv.parentNode.insertBefore(b,sv);else help.parentNode.insertBefore(b,help);}}
 loadMaps();
 
-const APPV=65;
+const APPV=66;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
