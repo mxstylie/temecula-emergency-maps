@@ -205,6 +205,15 @@ body.noui #zpm,body.sheet #zpm,body.popopen #zpm{display:none!important}
 .row .mgo,.row .mdel{border:0;border-radius:10px;padding:10px 12px;font-size:15px;font-weight:600;margin-left:6px;cursor:pointer;flex:none}
 .row .mgo{background:#e8efe9;color:var(--acc)}
 .row .mdel{background:#fbe9e9;color:var(--red)}
+
+/* Map items: stands out as its own card */
+#lay details.more{margin:6px 0 10px;border:2px solid #b9d4be;border-radius:16px;background:#eef6ef;overflow:hidden}
+#lay details.more summary{display:flex;align-items:center;gap:12px;padding:16px 16px!important;border-bottom:0!important;font-size:21px!important;font-weight:700!important;color:#1f5130!important;background:#dcecdf}
+#lay details.more summary::before{content:"";flex:none;width:34px;height:34px;border-radius:10px;background:#2f6b3f url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M12 3 2 8l10 5 10-5-10-5z'/%3E%3Cpath d='m2 13 10 5 10-5'/%3E%3C/svg%3E") center/22px no-repeat}
+#lay details.more summary::after{margin-left:auto;font-size:18px!important;color:#2f6b3f}
+#lay details.more[open] summary{border-bottom:1px solid #b9d4be!important}
+#lay details.more label{padding-left:16px!important;padding-right:12px!important}
+#lay details.more label:last-of-type{border-bottom:0!important}
 </style></head><body>
 <canvas id="c"></canvas>
 <div id="hdr" class="box"><b id="ttl">Offline Emergency SoCal</b><ul class="how"><li><span class="k">Drag</span> the map to move around</li><li><span class="k">Scroll</span> or <span class="k">+ / −</span> buttons (bottom right) to zoom in and out</li><li><span class="k">Tap a place</span> (🏥🚒🚓🏫…) to see what it is and how far away</li><li><span class="k">◎ Where am I</span> shows you on the map (GPS works with no cell service)</li><li><span class="k">⌂</span> button jumps back to Temecula</li></ul><span class="src">Works with no internet. Map data: OpenStreetMap.</span></div>
@@ -222,7 +231,7 @@ body.noui #zpm,body.sheet #zpm,body.popopen #zpm{display:none!important}
 <label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
 <label><input type="checkbox" class="dt" data-d="dirt,trail,river" checked>Dirt Roads, Trails &amp; Creeks</label>
 <label><input type="checkbox" id="rng" checked>Mile Rings</label>
-</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 59 · Nov 26</div>
+</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 60 · Nov 26</div>
 </div>
 <button id="grpbtn" aria-label="Groups">Groups</button><button id="thmbtn" aria-label="Light or dark map"></button><button id="credbtn" aria-label="Map credits">i</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">Update available. Tap to update</button><button id="share" aria-label="Share my location">Share location</button><button id="me" aria-label="Show where I am">My location</button><button id="laybtn" aria-label="Show layers">Layers</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
@@ -883,7 +892,7 @@ function addMapSheet(){const pop=openPop('<h3>Download a new map</h3>'+
   b.onclick=()=>{if(ly.classList.contains('open'))lb.onclick();mapsSheet();};help.parentNode.insertBefore(b,help);}}
 loadMaps();
 
-const APPV=59;
+const APPV=60;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
