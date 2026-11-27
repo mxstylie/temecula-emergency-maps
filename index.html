@@ -220,6 +220,10 @@ body.noui #zpm,body.sheet #zpm,body.popopen #zpm{display:none!important}
 #lay details.more{clear:both;width:100%;box-sizing:border-box}
 #lay details.more summary{justify-content:center}
 #lay details.more summary::after{margin-left:2px!important}
+
+/* satellite photos: dim at night instead of flipping colors */
+body.dark.sat #c{filter:brightness(.62) contrast(1.05)!important}
+#shere.on{background:#e8efe9}
 </style></head><body>
 <canvas id="c"></canvas>
 <div id="hdr" class="box"><b id="ttl">Offline Emergency SoCal</b><ul class="how"><li><span class="k">Drag</span> the map to move around</li><li><span class="k">Scroll</span> or <span class="k">+ / −</span> buttons (bottom right) to zoom in and out</li><li><span class="k">Tap a place</span> (🏥🚒🚓🏫…) to see what it is and how far away</li><li><span class="k">◎ Where am I</span> shows you on the map (GPS works with no cell service)</li><li><span class="k">⌂</span> button jumps back to Temecula</li></ul><span class="src">Works with no internet. Map data: OpenStreetMap.</span></div>
@@ -237,7 +241,7 @@ body.noui #zpm,body.sheet #zpm,body.popopen #zpm{display:none!important}
 <label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
 <label><input type="checkbox" class="dt" data-d="dirt,trail,river" checked>Dirt Roads, Trails &amp; Creeks</label>
 <label><input type="checkbox" id="rng" checked>Mile Rings</label>
-</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 67 · Nov 26</div>
+</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 68 · Nov 26</div>
 </div>
 <button id="grpbtn" aria-label="Groups">Groups</button><button id="thmbtn" aria-label="Light or dark map"></button><button id="credbtn" aria-label="Map credits">i</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">Update available. Tap to update</button><button id="share" aria-label="Share my location">Share location</button><button id="me" aria-label="Show where I am">My location</button><button id="laybtn" aria-label="Open menu">Menu</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
@@ -284,11 +288,12 @@ function render(){
   if(window.LANDR&&LANDR.length){const s=2**z;cx.fillStyle='#e6eada';for(const r of LANDR){const x0=r[0]*s-ox,y0=r[1]*s-oy,x1=r[2]*s-ox,y1=r[3]*s-oy;if(x1<0||y1<0||x0>W||y0>H)continue;cx.fillRect(Math.floor(x0),Math.floor(y0),Math.ceil(x1-x0)+1,Math.ceil(y1-y0)+1);}}
   cx.imageSmoothingEnabled=true;
   for(const b of bgi){if(!b.i.complete||!b.i.naturalWidth)continue;if(b.minz&&z<b.minz)continue;const x0=lon2x(b.w,z)-ox,x1=lon2x(b.e,z)-ox,y0=lat2y(b.n,z)-oy,y1=lat2y(b.s,z)-oy;const iw=b.i.naturalWidth,ih=b.i.naturalHeight,kx=iw/(x1-x0),ky=ih/(y1-y0);const dx0=Math.max(0,x0),dy0=Math.max(0,y0),dx1=Math.min(W,x1),dy1=Math.min(H,y1);if(dx1<=dx0||dy1<=dy0)continue;cx.drawImage(b.i,(dx0-x0)*kx,(dy0-y0)*ky,(dx1-dx0)*kx,(dy1-dy0)*ky,dx0,dy0,dx1-dx0,dy1-dy0);}
+  if(window.SATON&&window.SATDRAW)SATDRAW(cx,z,ox,oy,W,H);
   const pr=(lo,la)=>[lon2x(lo,z)-ox,lat2y(la,z)-oy];
-  {const s=2**z;if(DON.park&&z>=8.5){cx.fillStyle='rgba(110,170,80,.30)';fillL(PG.g,s,ox,oy);}
+  if(!window.SATON){const s=2**z;if(DON.park&&z>=8.5){cx.fillStyle='rgba(110,170,80,.30)';fillL(PG.g,s,ox,oy);}
    if(z>=8){cx.fillStyle='#a9cbe6';fillL(PG.w,s,ox,oy);}}
   // lakes
-  cx.fillStyle='#a9cbe6';for(const poly of V.w){cx.beginPath();poly.forEach((q,i)=>{const [x,y]=pr(q[0],q[1]);i?cx.lineTo(x,y):cx.moveTo(x,y);});cx.closePath();cx.fill();}
+  cx.fillStyle='#a9cbe6';if(!window.SATON)for(const poly of V.w){cx.beginPath();poly.forEach((q,i)=>{const [x,y]=pr(q[0],q[1]);i?cx.lineTo(x,y):cx.moveTo(x,y);});cx.closePath();cx.fill();}
   {const s=2**z;cx.lineJoin='round';cx.lineCap='round';
    if(DON.river&&z>=10.5){cx.strokeStyle='#4a90d9';cx.lineWidth=z>=13?2:1.2;strokeL(DL.river,s,ox,oy);}
    if(DON.minor&&z>=11.5){if(z>=12.5){cx.strokeStyle='rgba(90,70,40,.35)';cx.lineWidth=(z>=14?3.4:1.8)+1.4;strokeL(DL.minor,s,ox,oy);}cx.strokeStyle='#ffffff';cx.lineWidth=z>=14?3.4:z>=12.5?1.8:0.9;strokeL(DL.minor,s,ox,oy);}
@@ -923,7 +928,78 @@ function addMapSheet(){const pop=openPop('<h3>Download a new map</h3>'+
   b.onclick=()=>{if(ly.classList.contains('open'))lb.onclick();mapsSheet();};const sv=document.querySelector('#lay label.svl');if(sv)sv.parentNode.insertBefore(b,sv);else help.parentNode.insertBefore(b,help);}}
 loadMaps();
 
-const APPV=67;
+// ---------- satellite photos (USGS National Map imagery, public domain) ----------
+const SATURL=(z,x,y)=>'https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/'+z+'/'+y+'/'+x;
+const SDB={db:null,open(){return this.db?Promise.resolve(this.db):new Promise((ok,no)=>{const r=indexedDB.open('sat',1);r.onupgradeneeded=()=>{r.result.createObjectStore('t');r.result.createObjectStore('a',{keyPath:'id'});};r.onsuccess=()=>{this.db=r.result;ok(r.result)};r.onerror=()=>no(r.error);});},
+  async req(store,mode,fn){const db=await this.open();return new Promise((ok,no)=>{const t=db.transaction(store,mode),s=t.objectStore(store);const r=fn(s);t.oncomplete=()=>ok(r&&r.result);t.onerror=()=>no(t.error);});},
+  get(k){return this.req('t','readonly',s=>s.get(k));},put(k,v){return this.req('t','readwrite',s=>s.put(v,k));},del(k){return this.req('t','readwrite',s=>s.delete(k));},
+  areas(){return this.req('a','readonly',s=>s.getAll());},putArea(a){return this.req('a','readwrite',s=>s.put(a));},delArea(id){return this.req('a','readwrite',s=>s.delete(id));}};
+window.SATON=(()=>{try{return localStorage.getItem('sat')==='1'}catch(e){return false}})();
+document.body.classList.toggle('sat',SATON);
+const SMEM=new Map(),SPEND=new Set(),SMISS=new Set();
+function satTile(k){if(SMEM.has(k)){const v=SMEM.get(k);SMEM.delete(k);SMEM.set(k,v);return v;}
+  if(SPEND.has(k)||SMISS.has(k))return null;SPEND.add(k);
+  (async()=>{let blob=null;try{blob=await SDB.get(k);}catch(e){}
+    if(!blob&&navigator.onLine){const [z,x,y]=k.split('/');try{const r=await fetch(SATURL(z,x,y));if(r.ok)blob=await r.blob();}catch(e){}}
+    if(blob){try{const bm=await createImageBitmap(blob);SMEM.set(k,bm);while(SMEM.size>260){const f=SMEM.keys().next().value;const b=SMEM.get(f);SMEM.delete(f);try{b.close()}catch(e){}}}catch(e){SMISS.add(k);}}
+    else if(!navigator.onLine)SMISS.add(k);
+    SPEND.delete(k);draw();})();
+  return null;}
+window.addEventListener('online',()=>{SMISS.clear();draw();});
+window.SATDRAW=(cx,z,ox,oy,W,H)=>{if(z<8)return;const tz=Math.max(8,Math.min(16,Math.round(z))),k=2**(z-tz)*256;
+  const x0=Math.floor(ox/k),y0=Math.floor(oy/k),x1=Math.floor((ox+W)/k),y1=Math.floor((oy+H)/k);
+  for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){const px=x*k-ox,py=y*k-oy;let bm=satTile(tz+'/'+x+'/'+y);
+    if(bm){cx.drawImage(bm,Math.floor(px),Math.floor(py),Math.ceil(k)+1,Math.ceil(k)+1);continue;}
+    for(let d=1;d<=5&&tz-d>=8;d++){const pz=tz-d,f=2**d,qx=Math.floor(x/f),qy=Math.floor(y/f),pk=pz+'/'+qx+'/'+qy;const pb=SMEM.get(pk);
+      if(pb){const sz=256/f,sx=(x-qx*f)*sz,sy=(y-qy*f)*sz;cx.drawImage(pb,sx,sy,sz,sz,Math.floor(px),Math.floor(py),Math.ceil(k)+1,Math.ceil(k)+1);break;}if(d===2)satTile(pk);}}
+  cx.fillStyle='rgba(255,255,255,.75)';cx.font='11px system-ui,sans-serif';cx.fillText('Photos: USGS',8,H-8);};
+// tiles to save for an area
+function satTiles(la,lo,mi){const mz=mi<=5?16:15,out=[];for(let z=10;z<=mz;z++)for(const [x,y] of tilesAround(la,lo,mi,z))out.push(z+'/'+x+'/'+y);return out;}
+let SAREAS=[];SDB.areas().then(a=>{SAREAS=a||[];}).catch(()=>{});
+let SRUN=null;
+async function saveSat(name,la,lo,mi,onProg){const run={stop:false};SRUN=run;const T=satTiles(la,lo,mi);let done=0,bytes=0,fails=0,qi=0;
+  const one=async k=>{try{if(await SDB.get(k)){done++;return;}}catch(e){}const [z,x,y]=k.split('/');
+    for(let a=0;a<3&&!run.stop;a++){try{const r=await fetch(SATURL(z,x,y));if(!r.ok)throw 0;const b=await r.blob();bytes+=b.size;await SDB.put(k,b);return;}catch(e){await new Promise(ok=>setTimeout(ok,500*(a+1)));}}fails++;};
+  await Promise.all(Array.from({length:6},async()=>{while(qi<T.length&&!run.stop){await one(T[qi++]);done++;onProg(done,T.length,bytes);}}));
+  if(run.stop)return null;if(fails>T.length*0.1)throw new Error('net');
+  const a={id:'s'+Date.now(),name,la,lo,mi,t:Date.now(),n:T.length,bytes};await SDB.putArea(a);SAREAS.push(a);SMISS.clear();return a;}
+async function deleteSat(id){const a=SAREAS.find(q=>q.id===id);if(!a)return;const keep=new Set();for(const b of SAREAS)if(b.id!==id)for(const k of satTiles(b.la,b.lo,b.mi))keep.add(k);
+  for(const k of satTiles(a.la,a.lo,a.mi))if(!keep.has(k)){try{await SDB.del(k);}catch(e){}}
+  await SDB.delArea(id);SAREAS=SAREAS.filter(q=>q.id!==id);SMEM.clear();draw();}
+function satArea(mi,la){const n=satTiles(la||33.5,-117,mi).length;return n;}
+function satSheet(){const pop=openPop('<h3>Save satellite photos</h3><p class="lead">Saves photos for an area so they show with no internet.</p>'+
+   '<label class="mlab" for="szip">Zip code</label><input id="szip" class="minp" inputmode="numeric" maxlength="5" placeholder="92592">'+
+   '<button id="shere" class="row nav"><span class="rt"><b>Or use the middle of the map</b><span class="sub">Saves around the spot the map is showing now</span></span></button>'+
+   '<label class="mlab">How far around it</label><div class="seg" id="srad"><button data-r="3">3 mi</button><button data-r="5" class="on">5 mi</button><button data-r="10">10 mi</button><button data-r="15">15 mi</button></div>'+
+   '<p class="lead" id="sest"></p><button id="sgo" class="pri">Save photos</button><p class="lead" id="smsg"></p>');
+  let r=5,useHere=false;const est=()=>{const n=satArea(r);pop.querySelector('#sest').textContent='About '+mb(n*26000)+'. Wi-Fi is best.';};est();
+  pop.querySelectorAll('#srad button').forEach(b=>b.onclick=()=>{r=+b.dataset.r;pop.querySelectorAll('#srad button').forEach(q=>q.classList.toggle('on',q===b));est();});
+  const zi=pop.querySelector('#szip');zi.oninput=()=>{useHere=false;pop.querySelector('#shere').classList.remove('on');};
+  pop.querySelector('#shere').onclick=()=>{useHere=true;zi.value='';pop.querySelector('#shere').classList.add('on');pop.querySelector('#smsg').textContent='Using the middle of the map.';};
+  pop.querySelector('#sgo').onclick=async()=>{const msg=pop.querySelector('#smsg');const zip=zi.value.trim();
+    if(!useHere&&!/^\d{5}$/.test(zip)){msg.textContent='Type a 5-digit zip code, or tap "use the middle of the map".';return;}
+    if(!navigator.onLine){msg.textContent='No internet right now. Connect to Wi-Fi or cell data, then try again.';return;}
+    let where;if(useHere){const c=centerLL();where={la:c[0],lo:c[1],name:'Map area '+c[0].toFixed(3)+', '+c[1].toFixed(3)};}else{where=await zipLookup(zip);if(!where){msg.textContent='That zip code was not found.';return;}where.name=zip+' · '+where.name;}
+    const pp=openPop('<h3>Saving photos</h3><p class="lead" id="spt">Starting…</p><div class="meter"><i id="sbar"></i></div><p class="lead">Keep the app open until it finishes.</p><button id="sstop" class="row dng">Cancel</button>');
+    pp.querySelector('#sstop').onclick=()=>{if(SRUN)SRUN.stop=true;mapsSheet();};
+    try{const a=await saveSat(where.name,where.la,where.lo,r,(d,n,b)=>{const t=document.getElementById('spt'),bar=document.getElementById('sbar');if(t)t.textContent='Saving… '+Math.round(d/n*100)+'% ('+mb(b)+')';if(bar)bar.style.width=(d/n*100)+'%';});
+      if(!a)return;setSat(true);follow=false;if(z<13)z=13;setCenter(a.la,a.lo);draw();chime('join');
+      const dn=openPop('<h3>Photos saved</h3><p class="lead"><b>'+esc(a.name)+'</b>, '+a.mi+' miles around. They show with no internet when Satellite photos is on.</p><button id="sok" class="pri">Show it</button>');
+      dn.querySelector('#sok').onclick=()=>{dn.style.display='none';document.body.classList.remove('popopen');draw();};}
+    catch(e){openPop('<h3>Could not save photos</h3><p class="lead">The internet connection dropped. Connect to Wi-Fi and try again.</p><button id="sretry" class="pri">Try again</button>').querySelector('#sretry').onclick=satSheet;}};}
+function centerLL(){const s=256*2**z,lo=cxp/s*360-180,n=Math.PI-2*Math.PI*cyp/s;return [180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))),lo];}
+function setSat(on){SATON=window.SATON=on;try{localStorage.setItem('sat',on?'1':'0')}catch(e){}document.body.classList.toggle('sat',on);const c=document.getElementById('satchk');if(c)c.checked=on;draw();}
+// Menu switch + list in "Maps on this phone"
+{const mbtn=document.getElementById('mapsbtn');if(mbtn){const l=document.createElement('label');l.className='svl';l.innerHTML='<input type="checkbox" id="satchk"><span class="rt"><b>Satellite photos</b><span class="sub">Real photos under the map</span></span>';
+  mbtn.parentNode.insertBefore(l,mbtn.nextSibling);const c=l.querySelector('input');c.checked=SATON;c.onchange=()=>setSat(c.checked);}}
+{const _ms=mapsSheet;mapsSheet=function(){_ms();const pop=document.getElementById('pop');const add=pop.querySelector('#maddbtn');if(!add)return;
+  const rows=SAREAS.map(a=>'<div class="row stat"><span class="rt"><b>Satellite photos · '+esc(a.name)+'</b><span class="sub">'+a.mi+' miles around · '+mb(a.bytes)+'</span></span><button class="mgo" data-sgo="'+a.id+'">Show</button><button class="mdel" data-sdel="'+a.id+'">Delete</button></div>').join('');
+  add.insertAdjacentHTML('beforebegin',rows);add.insertAdjacentHTML('afterend','<button id="saddbtn" class="row nav"><span class="rt"><b>Save satellite photos</b><span class="sub">So photos show with no internet</span></span></button>');
+  pop.querySelector('#saddbtn').onclick=satSheet;
+  pop.querySelectorAll('[data-sgo]').forEach(b=>b.onclick=()=>{const a=SAREAS.find(q=>q.id===b.dataset.sgo);if(!a)return;pop.style.display='none';document.body.classList.remove('popopen');setSat(true);follow=false;if(z<13)z=13;setCenter(a.la,a.lo);draw();});
+  pop.querySelectorAll('[data-sdel]').forEach(b=>b.onclick=async()=>{const a=SAREAS.find(q=>q.id===b.dataset.sdel);if(!a)return;if(!confirm('Delete the saved satellite photos for "'+a.name+'"?'))return;await deleteSat(a.id);mapsSheet();});};}
+
+const APPV=68;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
