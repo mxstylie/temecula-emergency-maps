@@ -196,6 +196,15 @@ body.noui #uitip{bottom:84px!important}
 #zpm button:active{background:#e8ece9!important}
 body.noui #zpm,body.sheet #zpm,body.popopen #zpm{display:none!important}
 @media (max-height:520px){#zpm{bottom:calc(var(--tb) + 8px)}#zpm button{width:46px!important;height:46px!important;line-height:46px!important}}
+
+
+/* maps on this phone */
+.mlab{display:block;font-size:16px;font-weight:600;color:var(--ink);margin:14px 0 6px}
+.minp{width:100%;box-sizing:border-box;font-size:24px;padding:12px 14px;border:2px solid var(--line);border-radius:12px;letter-spacing:2px;color:var(--ink);background:#fff}
+.minp:focus{outline:none;border-color:var(--acc)}
+.row .mgo,.row .mdel{border:0;border-radius:10px;padding:10px 12px;font-size:15px;font-weight:600;margin-left:6px;cursor:pointer;flex:none}
+.row .mgo{background:#e8efe9;color:var(--acc)}
+.row .mdel{background:#fbe9e9;color:var(--red)}
 </style></head><body>
 <canvas id="c"></canvas>
 <div id="hdr" class="box"><b id="ttl">Offline Emergency SoCal</b><ul class="how"><li><span class="k">Drag</span> the map to move around</li><li><span class="k">Scroll</span> or <span class="k">+ / −</span> buttons (bottom right) to zoom in and out</li><li><span class="k">Tap a place</span> (🏥🚒🚓🏫…) to see what it is and how far away</li><li><span class="k">◎ Where am I</span> shows you on the map (GPS works with no cell service)</li><li><span class="k">⌂</span> button jumps back to Temecula</li></ul><span class="src">Works with no internet. Map data: OpenStreetMap.</span></div>
@@ -213,7 +222,7 @@ body.noui #zpm,body.sheet #zpm,body.popopen #zpm{display:none!important}
 <label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
 <label><input type="checkbox" class="dt" data-d="dirt,trail,river" checked>Dirt Roads, Trails &amp; Creeks</label>
 <label><input type="checkbox" id="rng" checked>Mile Rings</label>
-</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 57 · Nov 25</div>
+</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 58 · Nov 25</div>
 </div>
 <button id="grpbtn" aria-label="Groups">Groups</button><button id="thmbtn" aria-label="Light or dark map"></button><button id="credbtn" aria-label="Map credits">i</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">Update available. Tap to update</button><button id="share" aria-label="Share my location">Share location</button><button id="me" aria-label="Show where I am">My location</button><button id="laybtn" aria-label="Show layers">Layers</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
@@ -257,6 +266,7 @@ function render(){
   cx.setTransform(dpr,0,0,dpr,0,0);cx.fillStyle='#e8e6e1';cx.fillRect(0,0,W,H);
   const ox=cxp-W/2,oy=cyp-H/2;
   cx.fillStyle='#cfe0ee';cx.fillRect(0,0,W,H);
+  if(window.LANDR&&LANDR.length){const s=2**z;cx.fillStyle='#e6eada';for(const r of LANDR){const x0=r[0]*s-ox,y0=r[1]*s-oy,x1=r[2]*s-ox,y1=r[3]*s-oy;if(x1<0||y1<0||x0>W||y0>H)continue;cx.fillRect(Math.floor(x0),Math.floor(y0),Math.ceil(x1-x0)+1,Math.ceil(y1-y0)+1);}}
   cx.imageSmoothingEnabled=true;
   for(const b of bgi){if(!b.i.complete||!b.i.naturalWidth)continue;if(b.minz&&z<b.minz)continue;const x0=lon2x(b.w,z)-ox,x1=lon2x(b.e,z)-ox,y0=lat2y(b.n,z)-oy,y1=lat2y(b.s,z)-oy;const iw=b.i.naturalWidth,ih=b.i.naturalHeight,kx=iw/(x1-x0),ky=ih/(y1-y0);const dx0=Math.max(0,x0),dy0=Math.max(0,y0),dx1=Math.min(W,x1),dy1=Math.min(H,y1);if(dx1<=dx0||dy1<=dy0)continue;cx.drawImage(b.i,(dx0-x0)*kx,(dy0-y0)*ky,(dx1-dx0)*kx,(dy1-dy0)*ky,dx0,dy0,dx1-dx0,dy1-dy0);}
   const pr=(lo,la)=>[lon2x(lo,z)-ox,lat2y(la,z)-oy];
@@ -719,7 +729,155 @@ window.addEventListener('error',e=>{try{let b=document.getElementById('errbar');
 // buttons always stay on screen
 document.body.classList.remove('noui');new MutationObserver(()=>{if(document.body.classList.contains('noui'))document.body.classList.remove('noui');}).observe(document.body,{attributes:true,attributeFilter:['class']});
 
-const APPV=57;
+
+// ---------- download more maps (zip + radius), kept on this phone; delete them ----------
+const MDB={db:null,
+  open(){return this.db?Promise.resolve(this.db):new Promise((ok,no)=>{const r=indexedDB.open('maps',1);r.onupgradeneeded=()=>r.result.createObjectStore('m',{keyPath:'id'});r.onsuccess=()=>{this.db=r.result;ok(r.result)};r.onerror=()=>no(r.error);});},
+  async tx(mode,fn){const db=await this.open();return new Promise((ok,no)=>{const t=db.transaction('m',mode),s=t.objectStore('m');const r=fn(s);t.oncomplete=()=>ok(r&&r.result);t.onerror=()=>no(t.error);});},
+  all(){return this.tx('readonly',s=>s.getAll());},put(m){return this.tx('readwrite',s=>s.put(m));},del(id){return this.tx('readwrite',s=>s.delete(id));}};
+// --- vector tile reader (Mapbox Vector Tile / protobuf) ---
+function mvtRead(buf){const b=new Uint8Array(buf);let p=0;
+  const vint=()=>{let r=0,s=0,c;do{c=b[p++];r+=(c&127)*2**s;s+=7;}while(c&128);return r;};
+  const skip=w=>{if(w===0)vint();else if(w===1)p+=8;else if(w===2){const l=vint();p+=l;}else if(w===5)p+=4;};
+  const str=(e)=>new TextDecoder().decode(b.subarray(p,e));
+  const layers=[];
+  while(p<b.length){const k=vint(),f=k>>3,w=k&7;
+    if(f===3&&w===2){const L=vint(),end=p+L;const ly={name:'',keys:[],vals:[],feats:[],ext:4096};
+      while(p<end){const k2=vint(),f2=k2>>3,w2=k2&7;
+        if(f2===1){const l=vint();ly.name=str(p+l);p+=l;}
+        else if(f2===3){const l=vint();ly.keys.push(str(p+l));p+=l;}
+        else if(f2===5){ly.ext=vint();}
+        else if(f2===4){const l=vint(),e=p+l;let v=null;while(p<e){const k3=vint(),f3=k3>>3,w3=k3&7;
+            if(f3===1){const l3=vint();v=str(p+l3);p+=l3;}
+            else if(f3===2){v=new DataView(b.buffer,b.byteOffset+p,4).getFloat32(0,true);p+=4;}
+            else if(f3===3){v=new DataView(b.buffer,b.byteOffset+p,8).getFloat64(0,true);p+=8;}
+            else if(f3===4||f3===5){v=vint();}else if(f3===6){const n=vint();v=n%2?-(n+1)/2:n/2;}else if(f3===7){v=!!vint();}else skip(w3);}
+          ly.vals.push(v);}
+        else if(f2===2){const l=vint(),e=p+l;const ft={tags:[],type:0,geom:[]};
+          while(p<e){const k3=vint(),f3=k3>>3,w3=k3&7;
+            if(f3===2){const l3=vint(),e3=p+l3;while(p<e3)ft.tags.push(vint());}
+            else if(f3===3){ft.type=vint();}
+            else if(f3===4){const l3=vint(),e3=p+l3;while(p<e3)ft.geom.push(vint());}
+            else skip(w3);}
+          ly.feats.push(ft);}
+        else skip(w2);}
+      layers.push(ly);}
+    else skip(w);}
+  return layers;}
+function mvtGeom(g){const parts=[];let cur=null,x=0,y=0,i=0;
+  while(i<g.length){const c=g[i++],cmd=c&7,n=c>>3;
+    if(cmd===1||cmd===2){for(let j=0;j<n;j++){const dx=g[i++],dy=g[i++];x+=dx%2?-(dx+1)/2:dx/2;y+=dy%2?-(dy+1)/2:dy/2;
+        if(cmd===1){cur=[[x,y]];parts.push(cur);}else cur.push([x,y]);}}
+    else if(cmd===7){}}
+  return parts;}
+// --- turn tiles into the same lists the built-in map uses ---
+const MKIND={'hospital/hospital':'hosp','hospital/clinic':'clinic','fire_station/fire_station':'fire','police/police':'police','school/school':'school','college/college':'school','college/university':'school',
+  'town_hall/townhall':'hall','town_hall/community_centre':'hall','library/library':'hall','grocery/supermarket':'food','pharmacy/pharmacy':'rx','fuel/fuel':'fuel','campsite/camp_site':'camp',
+  'drinking_water/drinking_water':'water','place_of_worship/place_of_worship':'church','veterinary/veterinary':'vet','shop/doityourself':'hardware','shop/hardware':'hardware','post/post_office':'post'};
+const MNEEDNAME={school:1,hall:1,camp:1,food:1,rx:1,clinic:1,church:1,vet:1,hardware:1,post:1};
+const RCLS={motorway:'m',trunk:'t',primary:'p',secondary:'s',tertiary:'s',minor:'minor',track:'dirt',path:'trail'};
+function dpSimp(p,t){if(p.length<3)return p;const keep=new Uint8Array(p.length);keep[0]=keep[p.length-1]=1;const st=[[0,p.length-1]];
+  while(st.length){const [a,b]=st.pop();let md=0,mi=-1;const [x1,y1]=p[a],[x2,y2]=p[b],dx=x2-x1,dy=y2-y1,L=dx*dx+dy*dy;
+    for(let i=a+1;i<b;i++){const [x,y]=p[i];let d;if(L===0)d=Math.hypot(x-x1,y-y1);else{const u=Math.max(0,Math.min(1,((x-x1)*dx+(y-y1)*dy)/L));d=Math.hypot(x-x1-u*dx,y-y1-u*dy);}if(d>md){md=d;mi=i;}}
+    if(md>t&&mi>0){keep[mi]=1;st.push([a,mi],[mi,b]);}}
+  return p.filter((q,i)=>keep[i]);}
+function encLine(pts,tol){pts=dpSimp(pts,tol||0.00003);const a=[];let px=0,py=0,lx=null,ly=null;for(const [lo,la] of pts){const X=Math.round(lo*1e5),Y=Math.round(la*1e5);if(X===lx&&Y===ly)continue;a.push(X-px,Y-py);px=X;py=Y;lx=X;ly=Y;}return a.length>=4?a:null;}
+function newMapData(){return {m:[],t:[],p:[],s:[],minor:[],dirt:[],trail:[],river:[],green:[],water:[],poi:[],peak:[],names:[],park:[],hood:[],_seen:{}};}
+function addTile(D,layers,tz,tx,ty){const N=2**tz;
+  const ll=(ext,gx,gy)=>{const px=(tx+gx/ext)/N,py=(ty+gy/ext)/N;return [px*360-180,Math.atan(Math.sinh(Math.PI*(1-2*py)))*180/Math.PI];};
+  const seen=(k)=>{if(D._seen[k])return true;D._seen[k]=1;return false;};
+  for(const L of layers){const E=L.ext;
+    for(const f of L.feats){const P={};for(let i=0;i<f.tags.length;i+=2)P[L.keys[f.tags[i]]]=L.vals[f.tags[i+1]];
+      const parts=mvtGeom(f.geom);if(!parts.length)continue;
+      const line=pp=>pp.map(q=>ll(E,q[0],q[1]));
+      const ring=pp=>pp.map(q=>ll(E,Math.max(0,Math.min(E,q[0])),Math.max(0,Math.min(E,q[1]))));
+      const nm=P['name:latin']||P.name||P['name_en']||'';
+      if(L.name==='transportation'&&f.type===2){const k=RCLS[P.class];if(!k)continue;if(k==='trail'&&/footway|cycleway|steps|corridor|platform|pedestrian|sidewalk|crossing/.test(P.subclass||''))continue;for(const pp of parts){const e=encLine(line(pp));if(e)D[k].push(e);}}
+      else if(L.name==='waterway'&&f.type===2){if(!(P.class==='river'||(P.class==='stream'&&nm)))continue;for(const pp of parts){const e=encLine(line(pp));if(e)D.river.push(e);}}
+      else if((L.name==='water'||L.name==='park'||(L.name==='landcover'&&/wood|forest/.test(P.class||'')))&&f.type===3){const tgt=L.name==='water'?D.water:D.green;
+        for(const pp of parts){if(pp.length<4)continue;const e=encLine(ring(pp),0.00005);if(e)tgt.push(e);}
+        if(L.name==='park'&&nm){const pt=ll(E,parts[0][0][0],parts[0][0][1]);if(!seen('pk|'+nm))D.park.push([nm,+pt[0].toFixed(4),+pt[1].toFixed(4)]);}}
+      else if(L.name==='transportation_name'&&f.type===2&&nm){const pp=parts[0];if(pp.length<2)continue;const m=Math.floor((pp.length-1)/2),a=ll(E,pp[m][0],pp[m][1]),b2=ll(E,pp[m+1][0],pp[m+1][1]);
+        const mid=[(a[0]+b2[0])/2,(a[1]+b2[1])/2];if(seen('n|'+nm+'|'+Math.round(mid[0]*60)+'|'+Math.round(mid[1]*60)))continue;
+        let ang=Math.atan2(-(b2[1]-a[1]),(b2[0]-a[0])*Math.cos(mid[1]*Math.PI/180));if(ang>Math.PI/2)ang-=Math.PI;if(ang<-Math.PI/2)ang+=Math.PI;
+        const rk={motorway:0,trunk:0,primary:0,secondary:0,tertiary:1,minor:2,track:3,path:3}[P.class];if(rk===undefined)continue;
+        D.names.push([nm,rk,+mid[0].toFixed(4),+mid[1].toFixed(4),+ang.toFixed(2)]);}
+      else if(L.name==='poi'&&f.type===1){const k=MKIND[(P.class||'')+'/'+(P.subclass||'')];if(!k||(!nm&&MNEEDNAME[k]))continue;const pt=ll(E,parts[0][0][0],parts[0][0][1]);
+        if(seen('p|'+k+'|'+nm+'|'+Math.round(pt[0]*250)+'|'+Math.round(pt[1]*250)))continue;D.poi.push([k,nm,+pt[0].toFixed(5),+pt[1].toFixed(5)]);}
+      else if(L.name==='aerodrome_label'&&f.type===1){const pt=ll(E,parts[0][0][0],parts[0][0][1]);if(seen('a|'+Math.round(pt[0]*300)+'|'+Math.round(pt[1]*300)))continue;D.poi.push(['airport',nm||'Airport',+pt[0].toFixed(5),+pt[1].toFixed(5)]);}
+      else if(L.name==='mountain_peak'&&f.type===1&&nm&&(P.class||'peak')==='peak'){const pt=ll(E,parts[0][0][0],parts[0][0][1]);if(seen('k|'+nm+'|'+Math.round(pt[0]*300)))continue;
+        const ft=P.ele!=null?Math.round(P.ele*3.28084):null;D.peak.push([nm,ft,+pt[0].toFixed(5),+pt[1].toFixed(5)]);}
+      else if(L.name==='place'&&f.type===1&&nm){const c=P.class;if(!/city|town|village|hamlet|suburb|neighbourhood|quarter|locality/.test(c||''))continue;const pt=ll(E,parts[0][0][0],parts[0][0][1]);
+        if(seen('h|'+nm))continue;D.hood.push([nm,c==='suburb'||c==='quarter'?'village':c,+pt[0].toFixed(4),+pt[1].toFixed(4)]);}
+    }}}
+// --- add saved maps to what the map draws ---
+const MAPS=[];
+window.LANDR=window.LANDR||[];
+function landFor(m){const N=2**14,t2=(x,y)=>[lon2x(x/N*360-180,0),lat2y(Math.atan(Math.sinh(Math.PI*(1-2*y/N)))*180/Math.PI,0)];for(const [x,y] of tilesAround(m.la,m.lo,m.mi,14)){const a=t2(x,y),b=t2(x+1,y+1);LANDR.push([a[0],a[1],b[0],b[1]]);}}
+function mergeMap(d,m){if(m)landFor(m);const add=(dst,src)=>{for(const x of src)dst.push(x);};
+  add(VR.m,prepL(d.m));add(VR.t,prepL(d.t));add(VR.p,prepL(d.p));add(VR.s,prepL(d.s));
+  for(const k of ['minor','dirt','trail','river'])add(DL[k],prepL(d[k]));
+  add(PG.g,prepL(d.green));add(PG.w,prepL(d.water));
+  for(const [k,n,lo,la] of d.poi)POI.push({poi:k,name:n,lat:la,lon:lo});
+  D0.peak=(D0.peak||[]).concat(d.peak);D0.peak.sort((a,b)=>(b[1]||0)-(a[1]||0));
+  add(D0.names,d.names);D0.park=(D0.park||[]).concat(d.park);D0.hood=(D0.hood||[]).concat(d.hood);}
+async function loadMaps(){try{const ms=await MDB.all();for(const m of ms){MAPS.push(m);try{mergeMap(m.data,m);}catch(e){}}if(ms.length)draw();}catch(e){}}
+// --- tiles around a point ---
+function tilesAround(la,lo,mi,z){const N=2**z,R=mi*1609.34,lat=la*Math.PI/180;const mPerTile=40075016.7*Math.cos(lat)/N;
+  const cx=(lo+180)/360*N,cy=(1-Math.log(Math.tan(lat)+1/Math.cos(lat))/Math.PI)/2*N;const rt=R/mPerTile;const out=[];
+  for(let x=Math.floor(cx-rt-1);x<=Math.ceil(cx+rt);x++)for(let y=Math.floor(cy-rt-1);y<=Math.ceil(cy+rt);y++){const dx=Math.max(0,Math.abs(x+.5-cx)-.5),dy=Math.max(0,Math.abs(y+.5-cy)-.5);if(Math.hypot(dx,dy)<=rt)out.push([x,y]);}
+  return out;}
+async function zipLookup(zip){
+  try{const r=await fetch('https://api.zippopotam.us/us/'+zip);if(r.ok){const j=await r.json();const p=j.places[0];return {la:+p.latitude,lo:+p.longitude,name:p['place name']+', '+p['state abbreviation']};}}catch(e){}
+  try{const r=await fetch('https://nominatim.openstreetmap.org/search?postalcode='+zip+'&country=us&format=json&addressdetails=1');const j=await r.json();if(j[0]){const a=j[0].address||{};return {la:+j[0].lat,lo:+j[0].lon,name:(a.city||a.town||a.village||a.county||'')+(a.state?', '+a.state:'')};}}catch(e){}
+  return null;}
+let DLRUN=null;
+async function downloadMap(zip,mi,onProg){const run={stop:false};DLRUN=run;
+  const where=await zipLookup(zip);if(!where)throw new Error('zip');
+  const tj=await fetch('https://tiles.openfreemap.org/planet').then(r=>r.json());const url=tj.tiles[0];
+  const T=tilesAround(where.la,where.lo,mi,14);const D=newMapData();let done=0,bytes=0,fails=0;let qi=0;
+  const one=async([x,y])=>{for(let a=0;a<3;a++){if(run.stop)return;try{const r=await fetch(url.replace('{z}',14).replace('{x}',x).replace('{y}',y));if(r.status===204||r.status===404)return;if(!r.ok)throw 0;const buf=await r.arrayBuffer();bytes+=buf.byteLength;addTile(D,mvtRead(buf),14,x,y);return;}catch(e){await new Promise(ok=>setTimeout(ok,600*(a+1)));}}fails++;};
+  const worker=async()=>{while(qi<T.length&&!run.stop){const t=T[qi++];await one(t);done++;onProg(done,T.length,bytes);}};
+  await Promise.all(Array.from({length:6},worker));
+  if(run.stop)return null;
+  if(fails>T.length*0.1)throw new Error('net');
+  delete D._seen;
+  const m={id:'m'+Date.now(),zip,mi,name:zip+' · '+where.name,la:where.la,lo:where.lo,t:Date.now(),tiles:T.length,size:JSON.stringify(D).length,data:D};
+  await MDB.put(m);try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist();}catch(e){}
+  return m;}
+// --- screens ---
+const mb=n=>n>=1e6?(n/1e6).toFixed(n>=1e7?0:1)+' MB':Math.max(1,Math.round(n/1e3))+' KB';
+function mapsSheet(){const rows=MAPS.map(m=>'<div class="row stat"><span class="rt"><b>'+esc(m.name)+'</b><span class="sub">'+m.mi+' miles around · '+mb(m.size)+' · saved '+new Date(m.t).toLocaleDateString()+'</span></span><button class="mgo" data-go="'+m.id+'">Show</button><button class="mdel" data-del="'+m.id+'">Delete</button></div>').join('');
+  const pop=openPop('<h3>Maps on this phone</h3>'+
+    '<div class="row stat"><span class="rt"><b>Temecula and Southern California</b><span class="sub">Comes with the app</span></span></div>'+rows+
+    '<button id="maddbtn" class="pri">Download a new map</button><p class="lead">Needs internet to download. After that it works with no cell service.</p>');
+  pop.querySelector('#maddbtn').onclick=addMapSheet;
+  pop.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{const m=MAPS.find(q=>q.id===b.dataset.go);if(!m)return;pop.style.display='none';document.body.classList.remove('popopen');follow=false;if(z<11.5)z=11.5;setCenter(m.la,m.lo);draw();});
+  pop.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{const m=MAPS.find(q=>q.id===b.dataset.del);if(!m)return;
+    if(!confirm('Delete the map "'+m.name+'" from this phone?\nYou would need internet to download it again.'))return;
+    await MDB.del(m.id);location.reload();});}
+function addMapSheet(){const pop=openPop('<h3>Download a new map</h3>'+
+   '<label class="mlab" for="mzip">Zip code</label><input id="mzip" class="minp" inputmode="numeric" pattern="[0-9]*" maxlength="5" placeholder="92592" autocomplete="postal-code">'+
+   '<label class="mlab">How far around it</label><div class="seg" id="mrad"><button data-r="5">5 mi</button><button data-r="10" class="on">10 mi</button><button data-r="15">15 mi</button><button data-r="20">20 mi</button></div>'+
+   '<p class="lead" id="mest"></p><button id="mgo" class="pri">Download</button><p class="lead" id="mmsg"></p>');
+  let r=10;const est=()=>{const n=tilesAround(33.5,-117,r,14).length;pop.querySelector('#mest').textContent='Downloads up to '+mb(n*130000)+' in a big city, much less in small towns. Wi-Fi is best.';};est();
+  pop.querySelectorAll('#mrad button').forEach(b=>b.onclick=()=>{r=+b.dataset.r;pop.querySelectorAll('#mrad button').forEach(q=>q.classList.toggle('on',q===b));est();});
+  const zi=pop.querySelector('#mzip');setTimeout(()=>zi.focus(),50);
+  pop.querySelector('#mgo').onclick=async()=>{const zip=zi.value.trim();const msg=pop.querySelector('#mmsg');
+    if(!/^\d{5}$/.test(zip)){msg.textContent='Type a 5-digit zip code.';zi.focus();return;}
+    if(!navigator.onLine){msg.textContent='No internet right now. Connect to Wi-Fi or cell data, then try again.';return;}
+    const pp=openPop('<h3>Downloading map</h3><p class="lead" id="mpt">Finding '+zip+'…</p><div class="meter"><i id="mbar"></i></div><p class="lead">Keep the app open until it finishes.</p><button id="mstop" class="row dng">Cancel</button>');
+    pp.querySelector('#mstop').onclick=()=>{if(DLRUN)DLRUN.stop=true;mapsSheet();};
+    try{const m=await downloadMap(zip,r,(d,n,b)=>{const t=document.getElementById('mpt'),bar=document.getElementById('mbar');if(t)t.textContent='Downloading… '+Math.round(d/n*100)+'% ('+mb(b)+')';if(bar)bar.style.width=(d/n*100)+'%';});
+      if(!m)return;MAPS.push(m);mergeMap(m.data,m);follow=false;if(z<11.5)z=11.5;setCenter(m.la,m.lo);draw();chime('join');
+      const dn=openPop('<h3>Map saved</h3><p class="lead"><b>'+esc(m.name)+'</b>, '+m.mi+' miles around, is on this phone now. It works with no cell service.</p><button id="mok" class="pri">Show it</button>');
+      dn.querySelector('#mok').onclick=()=>{dn.style.display='none';document.body.classList.remove('popopen');draw();};}
+    catch(e){openPop('<h3>Could not download</h3><p class="lead">'+(e.message==='zip'?'That zip code was not found. Check it and try again.':'The internet connection dropped. Connect to Wi-Fi and try again.')+'</p><button id="mretry" class="pri">Try again</button>').querySelector('#mretry').onclick=addMapSheet;}};}
+{const help=document.getElementById('helpbtn');if(help){const b=document.createElement('button');b.id='mapsbtn';b.className='row nav';b.innerHTML='<span class="rt"><b>Maps on this phone</b><span class="sub">Download a new area or delete one</span></span>';
+  b.onclick=()=>{if(ly.classList.contains('open'))lb.onclick();mapsSheet();};help.parentNode.insertBefore(b,help);}}
+loadMaps();
+
+const APPV=58;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
