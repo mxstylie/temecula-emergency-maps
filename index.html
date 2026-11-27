@@ -237,7 +237,7 @@ body.noui #zpm,body.sheet #zpm,body.popopen #zpm{display:none!important}
 <label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
 <label><input type="checkbox" class="dt" data-d="dirt,trail,river" checked>Dirt Roads, Trails &amp; Creeks</label>
 <label><input type="checkbox" id="rng" checked>Mile Rings</label>
-</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 66 · Nov 26</div>
+</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 67 · Nov 26</div>
 </div>
 <button id="grpbtn" aria-label="Groups">Groups</button><button id="thmbtn" aria-label="Light or dark map"></button><button id="credbtn" aria-label="Map credits">i</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">Update available. Tap to update</button><button id="share" aria-label="Share my location">Share location</button><button id="me" aria-label="Show where I am">My location</button><button id="laybtn" aria-label="Open menu">Menu</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
@@ -770,6 +770,12 @@ document.body.classList.remove('noui');new MutationObserver(()=>{if(document.bod
 {const L=document.getElementById('lay'),d=L&&L.querySelector('details.more');if(d){let was=L.classList.contains('open');
   new MutationObserver(()=>{const now=L.classList.contains('open');if(now!==was){d.open=false;was=now;}}).observe(L,{attributes:true,attributeFilter:['class']});d.open=false;}}
 
+// bottom buttons always work: close the open menu/sheet first, then do their job
+{const tb=document.getElementById('tabbar');if(tb)tb.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const pp0=document.getElementById('pop');
+  if(b.id==='laybtn'){if(pp0&&pp0.style.display==='block'){pp0.style.display='none';pp0.dataset.tab='';document.body.classList.remove('popopen');try{stopListen();}catch(_){}}return;}
+  if(ly.classList.contains('open'))lb.onclick();
+  if(b.id==='me'){const pp=document.getElementById('pop');if(pp&&pp.style.display==='block'){pp.style.display='none';pp.dataset.tab='';document.body.classList.remove('popopen');}}},true);}
+
 // ---------- download more maps (zip + radius), kept on this phone; delete them ----------
 const MDB={db:null,
   open(){return this.db?Promise.resolve(this.db):new Promise((ok,no)=>{const r=indexedDB.open('maps',1);r.onupgradeneeded=()=>r.result.createObjectStore('m',{keyPath:'id'});r.onsuccess=()=>{this.db=r.result;ok(r.result)};r.onerror=()=>no(r.error);});},
@@ -917,7 +923,7 @@ function addMapSheet(){const pop=openPop('<h3>Download a new map</h3>'+
   b.onclick=()=>{if(ly.classList.contains('open'))lb.onclick();mapsSheet();};const sv=document.querySelector('#lay label.svl');if(sv)sv.parentNode.insertBefore(b,sv);else help.parentNode.insertBefore(b,help);}}
 loadMaps();
 
-const APPV=66;
+const APPV=67;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
