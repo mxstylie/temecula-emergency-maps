@@ -246,7 +246,7 @@ body.sheet #nomap,body.popopen #nomap{display:none}
 <label><input type="checkbox" class="dt" data-d="peak" checked>Mountain Peaks</label>
 <label><input type="checkbox" class="dt" data-d="dirt,trail,river" checked>Dirt Roads, Trails &amp; Creeks</label>
 <label><input type="checkbox" id="rng" checked>Mile Rings</label>
-</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 70 · Nov 27</div>
+</details><label class="svl"><input type="checkbox" id="saver"><span class="rt"><b>Battery saver</b><span class="sub">GPS turns off after each fix</span></span></label><button id="helpbtn" class="row nav"><span class="rt"><b>How to use this app</b></span></button><button id="fambtn" class="row nav"><span class="rt"><b>Groups</b><span class="sub" id="famn"></span></span></button><button id="addpin" class="row nav"><span class="rt"><b>Add a location someone sent you</b></span></button><button id="setname" class="row nav"><span class="rt"><b>My name</b><span class="sub" id="myn"></span></span></button><div class="ver">App Version 71 · Nov 27</div>
 </div>
 <button id="grpbtn" aria-label="Groups">Groups</button><button id="thmbtn" aria-label="Light or dark map"></button><button id="credbtn" aria-label="Map credits">i</button><div id="uitip">Buttons hidden. Tap the map to bring them back.</div><button id="updbar">Update available. Tap to update</button><button id="share" aria-label="Share my location">Share location</button><button id="me" aria-label="Show where I am">My location</button><button id="laybtn" aria-label="Open menu">Menu</button><div id="gps"></div><div id="zm" class="box"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zh" aria-label="Back to Temecula" style="font-size:13px">⌂</button></div>
 <div id="pop" class="box"></div><div id="scale"></div>
@@ -938,7 +938,7 @@ function addMapSheet(){const pop=openPop('<h3>Download a new map</h3>'+
     catch(e){openPop('<h3>Could not download</h3><p class="lead">'+(e.message==='zip'?'That zip code was not found. Check it and try again.':'The internet connection dropped. Connect to Wi-Fi and try again.')+'</p><button id="mretry" class="pri">Try again</button>').querySelector('#mretry').onclick=addMapSheet;}};}
 async function getSocal(){if(!navigator.onLine){openPop('<h3>No internet right now</h3><p class="lead">Connect to Wi-Fi or cell data, then try again.</p>');return;}
   const pp=openPop('<h3>Downloading map</h3><p class="lead" id="scpt">Temecula and Southern California…</p><div class="meter"><i id="scbar"></i></div><p class="lead">Keep the app open until it finishes.</p>');
-  try{const r=await fetch('socal.js?c='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const tot=+r.headers.get('content-length')||12500000;const rd=r.body.getReader();const parts=[];let got=0;
+  try{const r=await fetch('socal.js?c='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const tot=12200000;const rd=r.body.getReader();const parts=[];let got=0;
     for(;;){const {done,value}=await rd.read();if(done)break;parts.push(value);got+=value.length;const p=Math.min(100,got/tot*100);const t=document.getElementById('scpt'),bar=document.getElementById('scbar');if(t)t.textContent='Downloading… '+Math.round(p)+'% ('+mb(got)+')';if(bar)bar.style.width=p+'%';}
     const c=await caches.open('tem-maps');await c.put('socal.js',new Response(new Blob(parts),{headers:{'Content-Type':'text/javascript'}}));try{localStorage.setItem('socal','1')}catch(e){}
     const t=document.getElementById('scpt');if(t)t.textContent='Saved. Restarting…';setTimeout(()=>location.reload(),600);}
@@ -1020,7 +1020,7 @@ function setSat(on){SATON=window.SATON=on;try{localStorage.setItem('sat',on?'1':
   pop.querySelectorAll('[data-sgo]').forEach(b=>b.onclick=()=>{const a=SAREAS.find(q=>q.id===b.dataset.sgo);if(!a)return;pop.style.display='none';document.body.classList.remove('popopen');setSat(true);follow=false;if(z<13)z=13;setCenter(a.la,a.lo);draw();});
   pop.querySelectorAll('[data-sdel]').forEach(b=>b.onclick=async()=>{const a=SAREAS.find(q=>q.id===b.dataset.sdel);if(!a)return;if(!confirm('Delete the saved satellite photos for "'+a.name+'"?'))return;await deleteSat(a.id);mapsSheet();});};}
 
-const APPV=70;
+const APPV=71;
 {const ubar=document.getElementById('updbar');
  async function chk(){if(!navigator.onLine)return;try{const r=await fetch('version.json?c='+Date.now(),{cache:'no-store'});const j=await r.json();if(+j.v>APPV){ubar.style.display='block';}}catch(e){}}
  ubar.onclick=async()=>{ubar.textContent='⬇️ Updating… keep the app open';
