@@ -1,6 +1,6 @@
 {
- "name": "Offline Emergency SoCal",
- "short_name": "Emergency SoCal",
+ "name": "Offline Emergency",
+ "short_name": "Emergency",
  "start_url": "./",
  "scope": "./",
  "display": "standalone",
